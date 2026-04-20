@@ -225,19 +225,19 @@ function buildCustomer(){
     buildCalendar("cust",state.custMonth,state.selDate)+
     '<div style="height:10px"></div>'+
     '<div class="legend">'+
-    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日（休業）</div>'+
-    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:.5"></div>対応不可あり</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:.5"></div>対応不可・予約あり</div>'+
     '</div>'+
     '<div style="height:8px"></div>'+
-    '<div class="notice">⚠️ 当日・土日・祝日のご予約はお電話にてお問い合わせください。</div></div></div>';
+    '<div class="notice">⚠️ 当日のご予約はお電話にてお問い合わせください。</div></div></div>';
   if(state.selDate){
     html+='<div class="card"><div class="card-hd">🕐 STEP 2｜時間帯を選択</div><div class="card-bd">';
-    if(isWknd(state.selDate)||isToday(state.selDate)||isHoliday(fmt(state.selDate))){
-      html+='<div class="wknd"><div class="ico">📞</div><h3>この日はオンライン予約できません</h3><p>土日・祝日・当日のご予約は<br>お電話にてお問い合わせください。</p></div>';
+    if(isToday(state.selDate)){
+      html+='<div class="wknd"><div class="ico">📞</div><h3>当日はオンライン予約できません</h3><p>当日のご予約は<br>お電話にてお問い合わせください。</p></div>';
     }else{html+=buildTimeSlots(blocked,booked,state.selTime,ds);}
     html+='</div></div>';
   }
-  if(state.selDate&&state.selTime&&!isWknd(state.selDate)&&!isToday(state.selDate)&&!isHoliday(fmt(state.selDate))){
+  if(state.selDate&&state.selTime&&!isToday(state.selDate)){
     var f=state.form;
     html+='<div class="card"><div class="card-hd">📝 STEP 3｜お客様情報を入力</div><div class="card-bd">';
     html+='<div class="sum"><div class="sum-row"><span class="sum-l">日程</span><span class="sum-v">'+state.selDate.getFullYear()+'年'+(state.selDate.getMonth()+1)+'月'+state.selDate.getDate()+'日（'+DAYS[state.selDate.getDay()]+'）</span></div><div class="sum-row"><span class="sum-l">時間</span><span class="sum-v">'+state.selTime+'〜</span></div></div>';
@@ -348,23 +348,21 @@ function buildCalendar(ns,viewDate,selDate){
     var date=new Date(yr,mo,d);
     var ds=fmt(date);
     var isSun=date.getDay()===0;
-    var isSat=date.getDay()===6;
     var isHol=isHoliday(ds);
-    var dis=isPast(date)||isToday(date)||isSun||isSat||isHol;
+    var dis=isPast(date)||isToday(date);
     var isSel=selDate&&fmt(selDate)===ds;
     var isTod=isToday(date);
     var hasBlk=(state.blocked[ds]||[]).length>0||Object.keys(state.bookings[ds]||{}).length>0;
     var cls="cal-day";
     if(isTod) cls+=" tod";
     if(dis) cls+=" dis";
-    if(isSun||isHol) cls+=" holiday";// 日曜・祝日を赤く
-    if(isSat&&!isHol) cls+=" ";// 土曜はデフォルト
+    if(isSun||isHol) cls+=" holiday";// 日曜・祝日のみ赤く
     if(isSel) cls+=" sel";
     if(hasBlk&&!dis) cls+=" dot";
     cells+='<div class="'+cls+'" data-cal="'+ns+'" data-date="'+ds+'" data-dis="'+(dis?1:0)+'">'+d+'</div>';
   }
   return '<div class="cal-nav"><button id="'+ns+'PrevM" '+(canPrev?"":"disabled")+'>‹</button><span class="cal-month">'+yr+'年 '+(mo+1)+'月</span><button id="'+ns+'NextM">›</button></div>'+
-    '<div class="cal-grid">'+DAYS.map(function(d,i){return'<div class="cal-lbl" style="'+(i===0||i===6?"color:#ef4444":"")+'">'+d+'</div>';}).join("")+cells+'</div>';
+    '<div class="cal-grid">'+DAYS.map(function(d,i){return'<div class="cal-lbl" style="'+(i===0?"color:#ef4444":"")+'">'+d+'</div>';}).join("")+cells+'</div>';
 }
 
 function buildTimeSlots(blocked,booked,sel,ds){
