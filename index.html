@@ -126,7 +126,7 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
 <body>
 <div id="app"></div>
 <script>
-var ADMIN_PIN="5801";
+var ADMIN_PIN="1234";
 var SLOTS=["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
 var DAYS=["日","月","火","水","木","金","土"];
 var PAYMENT_OPTIONS=["ゆうちょ銀行","福岡銀行","福岡ひびき信用金庫","西日本シティ銀行","北九州農協","郵便払込用紙(毎月検針票と一緒)"];
@@ -540,11 +540,36 @@ function checkPin(){
   if(v===ADMIN_PIN){state.showPin=false;state.isAdmin=true;state.tab="admin";render();}
   else{var err=q("pinErr");if(err)err.textContent="PINが正しくありません";var inp=q("pinIn");if(inp){inp.value="";inp.focus();}}
 }
+var GAS_URL="https://script.google.com/macros/s/AKfycbxDKAQG1y1tlYUmV2YchsK-qxLE7z8bBR5Mv5Gf3AVvEM1RnVBsaR9sNwl146r_2uL6xw/exec";
+
 function submitBooking(){
   if(!isFormValid()) return;
   state.submitting=true;render();
   var id="BK"+Date.now();
   var ds=fmt(state.selDate); var f=state.form;
+  var payload={
+    id:id,
+    date:ds,
+    time:state.selTime,
+    name:f.name,
+    phone:f.phone,
+    type:f.type,
+    address:f.address,
+    building:f.building||"",
+    ownership:f.ownership,
+    payment:f.payment||"",
+    notes:f.notes||"",
+    createdAt:new Date().toISOString()
+  };
+  // Googleスプレッドシート＆LINE通知へ送信
+  fetch(GAS_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  }).catch(function(e){console.log("送信エラー",e);});
+
+  // ローカルにも保存
   if(!state.bookings[ds]) state.bookings[ds]={};
   state.bookings[ds][state.selTime]={id:id,name:f.name,phone:f.phone,type:f.type,address:f.address,building:f.building,ownership:f.ownership,depositAgreed:f.depositAgreed,payment:f.payment,notes:f.notes,createdAt:new Date().toISOString()};
   saveLS(SK_BK,state.bookings);
