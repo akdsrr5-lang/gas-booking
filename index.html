@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -135,16 +134,16 @@ var AUTO_BLOCK_TIMES=["09:00","10:00","11:00"];
 
 // ── 祝日リスト（2025〜2026年） ────────────────────────────────
 var HOLIDAYS={
-“2025-01-01”:1,“2025-01-13”:1,“2025-02-11”:1,“2025-02-23”:1,“2025-02-24”:1,
-“2025-03-20”:1,“2025-04-29”:1,“2025-05-03”:1,“2025-05-04”:1,“2025-05-05”:1,
-“2025-05-06”:1,“2025-07-21”:1,“2025-08-11”:1,“2025-09-15”:1,“2025-09-23”:1,
-“2025-10-13”:1,“2025-11-03”:1,“2025-11-23”:1,“2025-11-24”:1,
-“2026-01-01”:1,“2026-01-12”:1,“2026-02-11”:1,“2026-02-23”:1,
-“2026-03-20”:1,“2026-04-29”:1,“2026-05-03”:1,“2026-05-04”:1,“2026-05-05”:1,
-“2026-05-06”:1,“2026-07-20”:1,“2026-08-11”:1,“2026-09-21”:1,“2026-09-22”:1,
-“2026-10-12”:1,“2026-11-03”:1,“2026-11-23”:1,
-“2027-01-01”:1,“2027-01-11”:1,“2027-02-11”:1,“2027-02-23”:1,
-“2027-03-21”:1,“2027-04-29”:1,“2027-05-03”:1,“2027-05-04”:1,“2027-05-05”:1
+  "2025-01-01":1,"2025-01-13":1,"2025-02-11":1,"2025-02-23":1,"2025-02-24":1,
+  "2025-03-20":1,"2025-04-29":1,"2025-05-03":1,"2025-05-04":1,"2025-05-05":1,
+  "2025-05-06":1,"2025-07-21":1,"2025-08-11":1,"2025-09-15":1,"2025-09-23":1,
+  "2025-10-13":1,"2025-11-03":1,"2025-11-23":1,"2025-11-24":1,
+  "2026-01-01":1,"2026-01-12":1,"2026-02-11":1,"2026-02-23":1,
+  "2026-03-20":1,"2026-04-29":1,"2026-05-03":1,"2026-05-04":1,"2026-05-05":1,
+  "2026-05-06":1,"2026-07-20":1,"2026-08-11":1,"2026-09-21":1,"2026-09-22":1,
+  "2026-10-12":1,"2026-11-03":1,"2026-11-23":1,
+  "2027-01-01":1,"2027-01-11":1,"2027-02-11":1,"2027-02-23":1,
+  "2027-03-21":1,"2027-04-29":1,"2027-05-03":1,"2027-05-04":1,"2027-05-05":1
 };
 
 function isHoliday(dateStr){return !!HOLIDAYS[dateStr];}
@@ -153,481 +152,480 @@ function isHoliday(dateStr){return !!HOLIDAYS[dateStr];}
 // 月曜が祝日→翌火曜の9〜11時を自動ブロック
 // 通常月曜→月曜の9〜11時を自動ブロック
 function isAutoBlocked(dateStr,time){
-if(AUTO_BLOCK_TIMES.indexOf(time)<0) return false;
-var d=new Date(dateStr+“T00:00:00”);
-var day=d.getDay();
-if(day===1){// 月曜
-if(isHoliday(dateStr)) return false;// 月曜祝日→月曜はブロックしない
-return true;
-}
-if(day===2){// 火曜
-var prev=new Date(d); prev.setDate(d.getDate()-1);
-var prevStr=fmt(prev);
-if(isHoliday(prevStr)) return true;// 前日月曜が祝日→火曜ブロック
-}
-return false;
+  if(AUTO_BLOCK_TIMES.indexOf(time)<0) return false;
+  var d=new Date(dateStr+"T00:00:00");
+  var day=d.getDay();
+  if(day===1){// 月曜
+    if(isHoliday(dateStr)) return false;// 月曜祝日→月曜はブロックしない
+    return true;
+  }
+  if(day===2){// 火曜
+    var prev=new Date(d); prev.setDate(d.getDate()-1);
+    var prevStr=fmt(prev);
+    if(isHoliday(prevStr)) return true;// 前日月曜が祝日→火曜ブロック
+  }
+  return false;
 }
 
 var state={
-tab:“customer”,isAdmin:false,showPin:false,blocked:{},bookings:{},
-step:1,selDate:null,selTime:null,
-form:{name:””,phone:””,type:“閉栓”,address:””,building:””,ownership:””,depositAgreed:false,payment:””,notes:””},
-submitting:false,doneId:null,
-custMonth:new Date(),adminMonth:new Date(),adminDate:null,savingMsg:false,
-editModal:null,confirmCancel:null,addModal:false
+  tab:"customer",isAdmin:false,showPin:false,blocked:{},bookings:{},
+  step:1,selDate:null,selTime:null,
+  form:{name:"",phone:"",type:"閉栓",address:"",building:"",ownership:"",depositAgreed:false,payment:"",notes:""},
+  submitting:false,doneId:null,
+  custMonth:new Date(),adminMonth:new Date(),adminDate:null,savingMsg:false,
+  editModal:null,confirmCancel:null,addModal:false
 };
-var SK_BLK=“gas-blocked-v1”,SK_BK=“gas-bookings-v1”;
-function loadLS(k){try{return JSON.parse(localStorage.getItem(k)||”{}”);}catch(e){return{};}}
+var SK_BLK="gas-blocked-v1",SK_BK="gas-bookings-v1";
+function loadLS(k){try{return JSON.parse(localStorage.getItem(k)||"{}");}catch(e){return{};}}
 function saveLS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function fmt(d){return d.getFullYear()+”-”+p2(d.getMonth()+1)+”-”+p2(d.getDate());}
-function p2(n){return String(n).padStart(2,“0”);}
+function fmt(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
+function p2(n){return String(n).padStart(2,"0");}
 function today(){return fmt(new Date());}
 function isWknd(d){return d.getDay()===0||d.getDay()===6;}
 function isToday(d){return fmt(d)===today();}
 function isPast(d){return fmt(d)<today();}
-function esc(s){return String(s||””).replace(/&/g,”&”).replace(/</g,”<”).replace(/>/g,”>”).replace(/”/g,”"”);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function q(id){return document.getElementById(id);}
 function qa(s){return document.querySelectorAll(s);}
 function addMonth(d,n){var r=new Date(d);r.setDate(1);r.setMonth(r.getMonth()+n);return r;}
-function render(){document.getElementById(“app”).innerHTML=buildApp();bindEvents();}
+function render(){document.getElementById("app").innerHTML=buildApp();bindEvents();}
 
 function isFormValid(){
-var f=state.form;
-if(!f.name||!f.phone||!f.address||!f.ownership) return false;
-if(f.ownership===“賃貸”&&!f.depositAgreed) return false;
-if(f.type===“開栓”&&!f.payment) return false;
-return true;
+  var f=state.form;
+  if(!f.name||!f.phone||!f.address||!f.ownership) return false;
+  if(f.ownership==="賃貸"&&!f.depositAgreed) return false;
+  if(f.type==="開栓"&&!f.payment) return false;
+  return true;
 }
 
 function buildApp(){
-var modals=””;
-if(state.showPin) modals+=buildPinModal();
-if(state.editModal) modals+=buildEditModal();
-if(state.confirmCancel) modals+=buildConfirmModal();
-if(state.addModal) modals+=buildAddModal();
-return modals+
-‘<div class="header"><div class="header-row"><div><h1>🔧 閉栓・開栓 お申し込み</h1><p>ガス停止・再開のご予約はこちらから</p></div>’+
-‘<button class=“admin-btn ‘+(state.isAdmin?“on”:””)+’” id=“adminBtn”>’+(state.isAdmin?“🔓 管理者”:“管理者”)+’</button></div></div>’+
-(state.isAdmin?’<div class="tab-bar"><div class=“tab ‘+(state.tab===“customer”?“active”:””)+’” data-tab=“customer”>👤 お客様画面</div><div class=“tab ‘+(state.tab===“admin”?“active”:””)+’” data-tab=“admin”>⚙️ 管理画面</div></div>’:””)+
-‘<div class="wrap">’+(state.savingMsg?’<div class="saved">✓ 保存しました</div>’:””)+
-(state.tab===“customer”?buildCustomer():buildAdmin())+’</div>’;
+  var modals="";
+  if(state.showPin) modals+=buildPinModal();
+  if(state.editModal) modals+=buildEditModal();
+  if(state.confirmCancel) modals+=buildConfirmModal();
+  if(state.addModal) modals+=buildAddModal();
+  return modals+
+    '<div class="header"><div class="header-row"><div><h1>🔧 閉栓・開栓 お申し込み</h1><p>ガス停止・再開のご予約はこちらから</p></div>'+
+    '<button class="admin-btn '+(state.isAdmin?"on":"")+'" id="adminBtn">'+(state.isAdmin?"🔓 管理者":"管理者")+'</button></div></div>'+
+    (state.isAdmin?'<div class="tab-bar"><div class="tab '+(state.tab==="customer"?"active":"")+'" data-tab="customer">👤 お客様画面</div><div class="tab '+(state.tab==="admin"?"active":"")+'" data-tab="admin">⚙️ 管理画面</div></div>':"")+
+    '<div class="wrap">'+(state.savingMsg?'<div class="saved">✓ 保存しました</div>':"")+
+    (state.tab==="customer"?buildCustomer():buildAdmin())+'</div>';
 }
 
 function buildCustomer(){
-if(state.doneId) return buildSuccess();
-var ds=state.selDate?fmt(state.selDate):null;
-var blocked=ds?(state.blocked[ds]||[]):[];
-var booked=ds?(state.bookings[ds]||{}):{};
-var s=state.step;
-var html=’<div class="steps">’+
-‘<div class=“step ‘+(s>1?“done”:s===1?“act”:””)+’”></div>’+
-‘<div class=“step ‘+(s>2?“done”:s===2?“act”:””)+’”></div>’+
-‘<div class=“step ‘+(s>2?“done”:s===3?“act”:””)+’”></div></div>’;
-html+=’<div class="card"><div class="card-hd">📅 STEP 1｜日程を選択</div><div class="card-bd">’+
-buildCalendar(“cust”,state.custMonth,state.selDate)+
-‘<div style="height:10px"></div>’+
-‘<div class="legend">’+
-‘<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>’+
-‘<div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:.5"></div>対応不可・予約あり</div>’+
-‘</div>’+
-‘<div style="height:8px"></div>’+
-‘<div class="notice">⚠️ 当日のご予約はお電話にてお問い合わせください。</div></div></div>’;
-if(state.selDate){
-html+=’<div class="card"><div class="card-hd">🕐 STEP 2｜時間帯を選択</div><div class="card-bd">’;
-if(isToday(state.selDate)){
-html+=’<div class="wknd"><div class="ico">📞</div><h3>当日はオンライン予約できません</h3><p>当日のご予約は<br>お電話にてお問い合わせください。</p></div>’;
-}else{html+=buildTimeSlots(blocked,booked,state.selTime,ds);}
-html+=’</div></div>’;
-}
-if(state.selDate&&state.selTime&&!isToday(state.selDate)){
-var f=state.form;
-html+=’<div class="card"><div class="card-hd">📝 STEP 3｜お客様情報を入力</div><div class="card-bd">’;
-html+=’<div class="sum"><div class="sum-row"><span class="sum-l">日程</span><span class="sum-v">’+state.selDate.getFullYear()+‘年’+(state.selDate.getMonth()+1)+‘月’+state.selDate.getDate()+‘日（’+DAYS[state.selDate.getDay()]+’）</span></div><div class="sum-row"><span class="sum-l">時間</span><span class="sum-v">’+state.selTime+’〜</span></div></div>’;
-html+=’<div class="fg"><label class="fl">申し込み種別 <span>*</span></label><select class="fi" id="fType"><option ‘+(f.type===“閉栓”?“selected”:””)+’>閉栓</option><option ‘+(f.type===“開栓”?“selected”:””)+’>開栓</option></select></div>’;
-html+=’<div class="fg"><label class="fl">お名前 <span>*</span></label><input class="fi" id="fName" placeholder="山田 太郎" value="'+esc(f.name)+'"></div>’;
-html+=’<div class="fg"><label class="fl">電話番号 <span>*</span></label><input class="fi" id="fPhone" type="tel" placeholder="090-0000-0000" value="'+esc(f.phone)+'"></div>’;
-html+=’<div class="fg"><label class="fl">住所 <span>*</span></label><input class="fi" id="fAddress" placeholder="北九州市○○区○○町1-2-3" value="'+esc(f.address)+'"></div>’;
-html+=’<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="fBuilding" placeholder="○○マンション 101号室" value="'+esc(f.building)+'"></div>’;
-html+=’<div class="fg"><label class="fl">住居の種別 <span>*</span></label>’+
-‘<div class="radio-group">’+
-‘<label class=“radio-label ‘+(f.ownership===“持家”?“selected”:””)+’”><input type="radio" name="ownership" value="持家">🏠 持家</label>’+
-‘<label class=“radio-label ‘+(f.ownership===“賃貸”?“selected”:””)+’”><input type="radio" name="ownership" value="賃貸">🏢 賃貸</label>’+
-‘</div></div>’;
-if(f.ownership===“賃貸”){
-html+=’<div class="fg"><label class="fl">保証金について <span>*</span></label>’+
-‘<div class="deposit-box"><p class="deposit-text">ガスの契約時に<strong>1万円の保証金</strong>をお預かりさせていただいております。これは使用料金を滞納されたときや停止手続きを行わずに転居された場合の預り金となります。<br><br>退去・解約時にご返金いたします。</p></div>’+
-‘<label class=“check-label ‘+(f.depositAgreed?“checked”:””)+’”><input type=“checkbox” id=“fDeposit” ‘+(f.depositAgreed?“checked”:””)+’>’+
-‘<div class="check-box">’+(f.depositAgreed?“✓”:””)+’</div>’+
-‘<span class="check-text">同意しました</span></label></div>’;
-}
-if(f.type===“開栓”){
-html+=’<div class="fg"><label class="fl">お支払い方法 <span>*</span></label>’+
-‘<select class="fi" id="fPayment"><option value="">選択してください</option>’+
-PAYMENT_OPTIONS.map(function(o){return’<option value=”’+o+’” ‘+(f.payment===o?“selected”:””)+’>’+o+’</option>’;}).join(””)+
-‘</select></div>’;
-}
-html+=’<div class="fg"><label class="fl">備考</label><textarea class="ft" id="fNotes" placeholder="ご要望など">’+esc(f.notes)+’</textarea></div>’;
-var dis=isFormValid()?””:“disabled”;
-html+=’<button class=“btn btn-p” id=“submitBtn” ‘+dis+’>’+(state.submitting?“送信中…”:“✓ 予約を確定する”)+’</button>’;
-html+=’</div></div>’;
-}
-return html;
+  if(state.doneId) return buildSuccess();
+  var ds=state.selDate?fmt(state.selDate):null;
+  var blocked=ds?(state.blocked[ds]||[]):[];
+  var booked=ds?(state.bookings[ds]||{}):{};
+  var s=state.step;
+  var html='<div class="steps">'+
+    '<div class="step '+(s>1?"done":s===1?"act":"")+'"></div>'+
+    '<div class="step '+(s>2?"done":s===2?"act":"")+'"></div>'+
+    '<div class="step '+(s>2?"done":s===3?"act":"")+'"></div></div>';
+  html+='<div class="card"><div class="card-hd">📅 STEP 1｜日程を選択</div><div class="card-bd">'+
+    buildCalendar("cust",state.custMonth,state.selDate)+
+    '<div style="height:10px"></div>'+
+    '<div class="legend">'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:.5"></div>対応不可・予約あり</div>'+
+    '</div>'+
+    '<div style="height:8px"></div>'+
+    '<div class="notice">⚠️ 当日のご予約はお電話にてお問い合わせください。</div></div></div>';
+  if(state.selDate){
+    html+='<div class="card"><div class="card-hd">🕐 STEP 2｜時間帯を選択</div><div class="card-bd">';
+    if(isToday(state.selDate)){
+      html+='<div class="wknd"><div class="ico">📞</div><h3>当日はオンライン予約できません</h3><p>当日のご予約は<br>お電話にてお問い合わせください。</p></div>';
+    }else{html+=buildTimeSlots(blocked,booked,state.selTime,ds);}
+    html+='</div></div>';
+  }
+  if(state.selDate&&state.selTime&&!isToday(state.selDate)){
+    var f=state.form;
+    html+='<div class="card"><div class="card-hd">📝 STEP 3｜お客様情報を入力</div><div class="card-bd">';
+    html+='<div class="sum"><div class="sum-row"><span class="sum-l">日程</span><span class="sum-v">'+state.selDate.getFullYear()+'年'+(state.selDate.getMonth()+1)+'月'+state.selDate.getDate()+'日（'+DAYS[state.selDate.getDay()]+'）</span></div><div class="sum-row"><span class="sum-l">時間</span><span class="sum-v">'+state.selTime+'〜</span></div></div>';
+    html+='<div class="fg"><label class="fl">申し込み種別 <span>*</span></label><select class="fi" id="fType"><option '+(f.type==="閉栓"?"selected":"")+'>閉栓</option><option '+(f.type==="開栓"?"selected":"")+'>開栓</option></select></div>';
+    html+='<div class="fg"><label class="fl">お名前 <span>*</span></label><input class="fi" id="fName" placeholder="山田 太郎" value="'+esc(f.name)+'"></div>';
+    html+='<div class="fg"><label class="fl">電話番号 <span>*</span></label><input class="fi" id="fPhone" type="tel" placeholder="090-0000-0000" value="'+esc(f.phone)+'"></div>';
+    html+='<div class="fg"><label class="fl">住所 <span>*</span></label><input class="fi" id="fAddress" placeholder="北九州市○○区○○町1-2-3" value="'+esc(f.address)+'"></div>';
+    html+='<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="fBuilding" placeholder="○○マンション 101号室" value="'+esc(f.building)+'"></div>';
+    html+='<div class="fg"><label class="fl">住居の種別 <span>*</span></label>'+
+      '<div class="radio-group">'+
+      '<label class="radio-label '+(f.ownership==="持家"?"selected":"")+'"><input type="radio" name="ownership" value="持家">🏠 持家</label>'+
+      '<label class="radio-label '+(f.ownership==="賃貸"?"selected":"")+'"><input type="radio" name="ownership" value="賃貸">🏢 賃貸</label>'+
+      '</div></div>';
+    if(f.ownership==="賃貸"){
+      html+='<div class="fg"><label class="fl">保証金について <span>*</span></label>'+
+        '<div class="deposit-box"><p class="deposit-text">ガスの契約時に<strong>1万円の保証金</strong>をお預かりさせていただいております。これは使用料金を滞納されたときや停止手続きを行わずに転居された場合の預り金となります。<br><br>退去・解約時にご返金いたします。</p></div>'+
+        '<label class="check-label '+(f.depositAgreed?"checked":"")+'"><input type="checkbox" id="fDeposit" '+(f.depositAgreed?"checked":"")+'>'+
+        '<div class="check-box">'+(f.depositAgreed?"✓":"")+'</div>'+
+        '<span class="check-text">同意しました</span></label></div>';
+    }
+    if(f.type==="開栓"){
+      html+='<div class="fg"><label class="fl">お支払い方法 <span>*</span></label>'+
+        '<select class="fi" id="fPayment"><option value="">選択してください</option>'+
+        PAYMENT_OPTIONS.map(function(o){return'<option value="'+o+'" '+(f.payment===o?"selected":"")+'>'+o+'</option>';}).join("")+
+        '</select></div>';
+    }
+    html+='<div class="fg"><label class="fl">備考</label><textarea class="ft" id="fNotes" placeholder="ご要望など">'+esc(f.notes)+'</textarea></div>';
+    var dis=isFormValid()?"":"disabled";
+    html+='<button class="btn btn-p" id="submitBtn" '+dis+'>'+(state.submitting?"送信中…":"✓ 予約を確定する")+'</button>';
+    html+='</div></div>';
+  }
+  return html;
 }
 
 function buildSuccess(){
-var d=state.selDate; var f=state.form;
-return ‘<div class="card"><div class="card-bd" style="padding:32px 20px;text-align:center">’+
-‘<div class="ok-ico">✓</div><div class="ok-title">予約が完了しました</div>’+
-‘<div class="ok-sub">受付番号：<strong>’+state.doneId+’</strong><br>’+
-d.getFullYear()+‘年’+(d.getMonth()+1)+‘月’+d.getDate()+‘日（’+DAYS[d.getDay()]+’）’+state.selTime+’〜<br>’+
-f.type+’ のご予約を承りました。<br><br>担当者よりご連絡する場合がございます。</div>’+
-‘<div style="height:16px"></div>’+
-‘<div class="sum" style="text-align:left">’+
-‘<div class="sum-row"><span class="sum-l">お名前</span><span class="sum-v">’+esc(f.name)+’</span></div>’+
-‘<div class="sum-row"><span class="sum-l">電話番号</span><span class="sum-v">’+esc(f.phone)+’</span></div>’+
-‘<div class="sum-row"><span class="sum-l">住所</span><span class="sum-v">’+esc(f.address)+(f.building?” “+esc(f.building):””)+’</span></div>’+
-‘<div class="sum-row"><span class="sum-l">住居種別</span><span class="sum-v">’+esc(f.ownership)+’</span></div>’+
-(f.type===“開栓”?’<div class="sum-row"><span class="sum-l">お支払い</span><span class="sum-v">’+esc(f.payment)+’</span></div>’:’’)+
-(f.notes?’<div class="sum-row"><span class="sum-l">備考</span><span class="sum-v">’+esc(f.notes)+’</span></div>’:’’)+
-‘</div>’+
-‘<div class="notice grn">📞 変更・キャンセルはお電話にてご連絡ください。</div>’+
-‘<div style="height:14px"></div><button class="btn btn-o" id="resetBtn">最初に戻る</button></div></div>’;
+  var d=state.selDate; var f=state.form;
+  return '<div class="card"><div class="card-bd" style="padding:32px 20px;text-align:center">'+
+    '<div class="ok-ico">✓</div><div class="ok-title">予約が完了しました</div>'+
+    '<div class="ok-sub">受付番号：<strong>'+state.doneId+'</strong><br>'+
+    d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+DAYS[d.getDay()]+'）'+state.selTime+'〜<br>'+
+    f.type+' のご予約を承りました。<br><br>担当者よりご連絡する場合がございます。</div>'+
+    '<div style="height:16px"></div>'+
+    '<div class="sum" style="text-align:left">'+
+    '<div class="sum-row"><span class="sum-l">お名前</span><span class="sum-v">'+esc(f.name)+'</span></div>'+
+    '<div class="sum-row"><span class="sum-l">電話番号</span><span class="sum-v">'+esc(f.phone)+'</span></div>'+
+    '<div class="sum-row"><span class="sum-l">住所</span><span class="sum-v">'+esc(f.address)+(f.building?" "+esc(f.building):"")+'</span></div>'+
+    '<div class="sum-row"><span class="sum-l">住居種別</span><span class="sum-v">'+esc(f.ownership)+'</span></div>'+
+    (f.type==="開栓"?'<div class="sum-row"><span class="sum-l">お支払い</span><span class="sum-v">'+esc(f.payment)+'</span></div>':'')+
+    (f.notes?'<div class="sum-row"><span class="sum-l">備考</span><span class="sum-v">'+esc(f.notes)+'</span></div>':'')+
+    '</div>'+
+    '<div class="notice grn">📞 変更・キャンセルはお電話にてご連絡ください。</div>'+
+    '<div style="height:14px"></div><button class="btn btn-o" id="resetBtn">最初に戻る</button></div></div>';
 }
 
 function buildAdmin(){
-var ds=state.adminDate?fmt(state.adminDate):null;
-var blocked=ds?(state.blocked[ds]||[]):[];
-var booked=ds?(state.bookings[ds]||{}):{};
-var html=’<div class="card"><div class="card-hd">📅 日程を選択</div><div class="card-bd">’+
-buildCalendar(“admin”,state.adminMonth,state.adminDate)+
-‘<div style="height:10px"></div>’+
-‘<div class="legend">’+
-‘<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>’+
-‘<div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:.5"></div>対応不可・予約あり</div>’+
-‘</div>’+
-‘<div style="height:8px"></div>’+
-‘<div class="notice">🔴 赤ドット = ブロックまたは予約あり　🟡 黄色 = 月曜AM自動ブロック</div></div></div>’;
-if(state.adminDate){
-var dateStr=fmt(state.adminDate);
-var isHol=isHoliday(dateStr);
-html+=’<div class="card"><div class="card-hd">🕐 時間帯管理<span style="margin-left:auto;font-size:10px;opacity:.7">’+state.adminDate.getFullYear()+‘年’+(state.adminDate.getMonth()+1)+‘月’+state.adminDate.getDate()+‘日（’+DAYS[state.adminDate.getDay()]+’）’+(isHol?“🎌 祝日”:””)+’</span></div>’+
-‘<div class="card-bd"><p style="font-size:11px;color:#64748b;margin-bottom:12px">🔵 予約済みをタップ→詳細編集　🟡 自動ブロック（月曜AM）　🟢 空きをタップ→ブロック切替</p>’+
-buildAdminSlots(blocked,booked,dateStr)+’</div></div>’;
-html+=’<div class="card"><div class="card-hd">📋 この日の予約一覧<span style="margin-left:auto;font-size:10px;opacity:.7">’+Object.keys(booked).length+‘件</span><button id="addBkBtn" style="margin-left:10px;font-size:10px;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);cursor:pointer;">＋ 新規追加</button></div><div class="card-bd">’;
-var keys=Object.keys(booked).sort();
-if(keys.length===0){html+=’<div class="empty">予約はありません</div>’;}
-else{
-keys.forEach(function(t){
-var bk=booked[t];
-html+=’<div class="bk-item">’+
-‘<div class="bk-time">’+t+’〜　‘+bk.type+’</div>’+
-‘<div class="bk-name">👤 ‘+esc(bk.name)+’　📞 ‘+esc(bk.phone)+’</div>’+
-‘<div class="bk-note">📍 ‘+esc(bk.address)+(bk.building?” “+esc(bk.building):””)+’</div>’+
-‘<div class="bk-note">🏠 ‘+esc(bk.ownership)+’</div>’+
-(bk.payment?’<div class="bk-note">💳 ‘+esc(bk.payment)+’</div>’:’’)+
-(bk.notes?’<div class="bk-note">💬 ‘+esc(bk.notes)+’</div>’:’’)+
-‘<div class="bk-id">受付No: ‘+bk.id+’</div>’+
-‘<div class="bk-actions">’+
-‘<button class="bk-btn bk-btn-edit" data-edit-date="'+ds+'" data-edit-time="'+t+'">✏️ 編集</button>’+
-‘<button class="bk-btn bk-btn-cancel" data-cancel-date="'+ds+'" data-cancel-time="'+t+'">🗑️ キャンセル</button>’+
-‘</div></div>’;
-});
-}
-html+=’</div></div>’;
-}
-return html;
+  var ds=state.adminDate?fmt(state.adminDate):null;
+  var blocked=ds?(state.blocked[ds]||[]):[];
+  var booked=ds?(state.bookings[ds]||{}):{};
+  var html='<div class="card"><div class="card-hd">📅 日程を選択</div><div class="card-bd">'+
+    buildCalendar("admin",state.adminMonth,state.adminDate)+
+    '<div style="height:10px"></div>'+
+    '<div class="legend">'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:.5"></div>対応不可・予約あり</div>'+
+    '</div>'+
+    '<div style="height:8px"></div>'+
+    '<div class="notice">🔴 赤ドット = ブロックまたは予約あり　🟡 黄色 = 月曜AM自動ブロック</div></div></div>';
+  if(state.adminDate){
+    var dateStr=fmt(state.adminDate);
+    var isHol=isHoliday(dateStr);
+    html+='<div class="card"><div class="card-hd">🕐 時間帯管理<span style="margin-left:auto;font-size:10px;opacity:.7">'+state.adminDate.getFullYear()+'年'+(state.adminDate.getMonth()+1)+'月'+state.adminDate.getDate()+'日（'+DAYS[state.adminDate.getDay()]+'）'+(isHol?"🎌 祝日":"")+'</span></div>'+
+      '<div class="card-bd"><p style="font-size:11px;color:#64748b;margin-bottom:12px">🔵 予約済みをタップ→詳細編集　🟡 自動ブロック（月曜AM）　🟢 空きをタップ→ブロック切替</p>'+
+      buildAdminSlots(blocked,booked,dateStr)+'</div></div>';
+    html+='<div class="card"><div class="card-hd">📋 この日の予約一覧<span style="margin-left:auto;font-size:10px;opacity:.7">'+Object.keys(booked).length+'件</span><button id="addBkBtn" style="margin-left:10px;font-size:10px;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);cursor:pointer;">＋ 新規追加</button></div><div class="card-bd">';
+    var keys=Object.keys(booked).sort();
+    if(keys.length===0){html+='<div class="empty">予約はありません</div>';}
+    else{
+      keys.forEach(function(t){
+        var bk=booked[t];
+        html+='<div class="bk-item">'+
+          '<div class="bk-time">'+t+'〜　'+bk.type+'</div>'+
+          '<div class="bk-name">👤 '+esc(bk.name)+'　📞 '+esc(bk.phone)+'</div>'+
+          '<div class="bk-note">📍 '+esc(bk.address)+(bk.building?" "+esc(bk.building):"")+'</div>'+
+          '<div class="bk-note">🏠 '+esc(bk.ownership)+'</div>'+
+          (bk.payment?'<div class="bk-note">💳 '+esc(bk.payment)+'</div>':'')+
+          (bk.notes?'<div class="bk-note">💬 '+esc(bk.notes)+'</div>':'')+
+          '<div class="bk-id">受付No: '+bk.id+'</div>'+
+          '<div class="bk-actions">'+
+          '<button class="bk-btn bk-btn-edit" data-edit-date="'+ds+'" data-edit-time="'+t+'">✏️ 編集</button>'+
+          '<button class="bk-btn bk-btn-cancel" data-cancel-date="'+ds+'" data-cancel-time="'+t+'">🗑️ キャンセル</button>'+
+          '</div></div>';
+      });
+    }
+    html+='</div></div>';
+  }
+  return html;
 }
 
 function buildCalendar(ns,viewDate,selDate){
-var yr=viewDate.getFullYear(),mo=viewDate.getMonth();
-var firstDay=new Date(yr,mo,1).getDay();
-var dim=new Date(yr,mo+1,0).getDate();
-var now=new Date();now.setHours(0,0,0,0);
-var canPrev=new Date(yr,mo,1)>new Date(now.getFullYear(),now.getMonth(),1);
-var cells=””;
-for(var i=0;i<firstDay;i++) cells+=’<div class="cal-day emp"></div>’;
-for(var d=1;d<=dim;d++){
-var date=new Date(yr,mo,d);
-var ds=fmt(date);
-var isSun=date.getDay()===0;
-var isHol=isHoliday(ds);
-var dis=isPast(date)||isToday(date);
-var isSel=selDate&&fmt(selDate)===ds;
-var isTod=isToday(date);
-var hasBlk=(state.blocked[ds]||[]).length>0||Object.keys(state.bookings[ds]||{}).length>0;
-var cls=“cal-day”;
-if(isTod) cls+=” tod”;
-if(dis) cls+=” dis”;
-if(isSun||isHol) cls+=” holiday”;// 日曜・祝日のみ赤く
-if(isSel) cls+=” sel”;
-if(hasBlk&&!dis) cls+=” dot”;
-cells+=’<div class="'+cls+'" data-cal="'+ns+'" data-date="'+ds+'" data-dis="'+(dis?1:0)+'">’+d+’</div>’;
-}
-return ‘<div class="cal-nav"><button id=”’+ns+‘PrevM” ‘+(canPrev?””:“disabled”)+’>‹</button><span class="cal-month">’+yr+‘年 ‘+(mo+1)+‘月</span><button id="'+ns+'NextM">›</button></div>’+
-‘<div class="cal-grid">’+DAYS.map(function(d,i){return’<div class=“cal-lbl” style=”’+(i===0?“color:#ef4444”:””)+’”>’+d+’</div>’;}).join(””)+cells+’</div>’;
+  var yr=viewDate.getFullYear(),mo=viewDate.getMonth();
+  var firstDay=new Date(yr,mo,1).getDay();
+  var dim=new Date(yr,mo+1,0).getDate();
+  var now=new Date();now.setHours(0,0,0,0);
+  var canPrev=new Date(yr,mo,1)>new Date(now.getFullYear(),now.getMonth(),1);
+  var cells="";
+  for(var i=0;i<firstDay;i++) cells+='<div class="cal-day emp"></div>';
+  for(var d=1;d<=dim;d++){
+    var date=new Date(yr,mo,d);
+    var ds=fmt(date);
+    var isSun=date.getDay()===0;
+    var isHol=isHoliday(ds);
+    var dis=isPast(date)||isToday(date);
+    var isSel=selDate&&fmt(selDate)===ds;
+    var isTod=isToday(date);
+    var hasBlk=(state.blocked[ds]||[]).length>0||Object.keys(state.bookings[ds]||{}).length>0;
+    var cls="cal-day";
+    if(isTod) cls+=" tod";
+    if(dis) cls+=" dis";
+    if(isSun||isHol) cls+=" holiday";// 日曜・祝日のみ赤く
+    if(isSel) cls+=" sel";
+    if(hasBlk&&!dis) cls+=" dot";
+    cells+='<div class="'+cls+'" data-cal="'+ns+'" data-date="'+ds+'" data-dis="'+(dis?1:0)+'">'+d+'</div>';
+  }
+  return '<div class="cal-nav"><button id="'+ns+'PrevM" '+(canPrev?"":"disabled")+'>‹</button><span class="cal-month">'+yr+'年 '+(mo+1)+'月</span><button id="'+ns+'NextM">›</button></div>'+
+    '<div class="cal-grid">'+DAYS.map(function(d,i){return'<div class="cal-lbl" style="'+(i===0?"color:#ef4444":"")+'">'+d+'</div>';}).join("")+cells+'</div>';
 }
 
 function buildTimeSlots(blocked,booked,sel,ds){
-return ‘<div class="time-grid">’+SLOTS.map(function(t){
-var isBlk=blocked.indexOf(t)>=0;
-var isBkd=!!booked[t];
-var isAuto=isAutoBlocked(ds,t);
-var isSel=sel===t;
-var cls=“slot”;
-if(isBkd) cls+=” blk”;
-else if(isAuto) cls+=” auto-blk”;
-else if(isBlk) cls+=” blk”;
-else if(isSel) cls+=” sel”;
-var st=isBkd?“× 対応不可”:isAuto?“× AM対応不可”:isBlk?“× 対応不可”:“○ 空き”;
-return ‘<div class="'+cls+'" data-slot="'+t+'">’+t+’<div class="slot-st">’+st+’</div></div>’;
-}).join(””)+’</div>’;
+  return '<div class="time-grid">'+SLOTS.map(function(t){
+    var isBlk=blocked.indexOf(t)>=0;
+    var isBkd=!!booked[t];
+    var isAuto=isAutoBlocked(ds,t);
+    var isSel=sel===t;
+    var cls="slot";
+    if(isBkd) cls+=" blk";
+    else if(isAuto) cls+=" auto-blk";
+    else if(isBlk) cls+=" blk";
+    else if(isSel) cls+=" sel";
+    var st=isBkd?"× 対応不可":isAuto?"× AM対応不可":isBlk?"× 対応不可":"○ 空き";
+    return '<div class="'+cls+'" data-slot="'+t+'">'+t+'<div class="slot-st">'+st+'</div></div>';
+  }).join("")+'</div>';
 }
 
 function buildAdminSlots(blocked,booked,ds){
-return ‘<div class="time-grid">’+SLOTS.map(function(t){
-var isBkd=!!booked[t];
-var isBlk=blocked.indexOf(t)>=0;
-var isAuto=isAutoBlocked(ds,t);
-var cls=“slot”;
-if(isBkd) cls+=” a-bkd”;
-else if(isAuto) cls+=” a-auto”;
-else if(isBlk) cls+=” a-blk”;
-else cls+=” a-free”;
-var st=isBkd?“📋 予約済”:isAuto?“🟡 自動ブロック”:isBlk?“× ブロック”:“○ 対応可”;
-return ‘<div class="'+cls+'" data-admin-slot="'+t+'" data-is-bkd="'+(isBkd?1:0)+'" data-is-auto="'+(isAuto?1:0)+'">’+t+’<div class="slot-st">’+st+’</div></div>’;
-}).join(””)+’</div>’;
+  return '<div class="time-grid">'+SLOTS.map(function(t){
+    var isBkd=!!booked[t];
+    var isBlk=blocked.indexOf(t)>=0;
+    var isAuto=isAutoBlocked(ds,t);
+    var cls="slot";
+    if(isBkd) cls+=" a-bkd";
+    else if(isAuto) cls+=" a-auto";
+    else if(isBlk) cls+=" a-blk";
+    else cls+=" a-free";
+    var st=isBkd?"📋 予約済":isAuto?"🟡 自動ブロック":isBlk?"× ブロック":"○ 対応可";
+    return '<div class="'+cls+'" data-admin-slot="'+t+'" data-is-bkd="'+(isBkd?1:0)+'" data-is-auto="'+(isAuto?1:0)+'">'+t+'<div class="slot-st">'+st+'</div></div>';
+  }).join("")+'</div>';
 }
 
 function buildEditModal(){
-var em=state.editModal; var bk=em.bk;
-return ‘<div class="overlay" id="editOverlay"><div class="modal" id="editModal">’+
-‘<h2>✏️ 予約を編集</h2><p>’+em.date+’　‘+em.time+’〜</p>’+
-‘<div class="fg"><label class="fl">申し込み種別</label><select class="fi" id="emType"><option ‘+(bk.type===“閉栓”?“selected”:””)+’>閉栓</option><option ‘+(bk.type===“開栓”?“selected”:””)+’>開栓</option></select></div>’+
-‘<div class="fg"><label class="fl">お名前</label><input class="fi" id="emName" value="'+esc(bk.name)+'"></div>’+
-‘<div class="fg"><label class="fl">電話番号</label><input class="fi" id="emPhone" type="tel" value="'+esc(bk.phone)+'"></div>’+
-‘<div class="fg"><label class="fl">住所</label><input class="fi" id="emAddress" value="'+esc(bk.address)+'"></div>’+
-‘<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="emBuilding" value="'+esc(bk.building||'')+'"></div>’+
-‘<div class="fg"><label class="fl">住居種別</label><select class="fi" id="emOwnership"><option ‘+(bk.ownership===“持家”?“selected”:””)+’>持家</option><option ‘+(bk.ownership===“賃貸”?“selected”:””)+’>賃貸</option></select></div>’+
-‘<div class="fg"><label class="fl">お支払い方法</label><select class="fi" id="emPayment"><option value="">なし</option>’+
-PAYMENT_OPTIONS.map(function(o){return’<option ‘+(bk.payment===o?“selected”:””)+’>’+o+’</option>’;}).join(””)+’</select></div>’+
-‘<div class="fg"><label class="fl">備考</label><textarea class="ft" id="emNotes">’+esc(bk.notes||’’)+’</textarea></div>’+
-‘<div class="modal-btns"><button class="btn-sm" id="editCancel" style="background:#f1f5f9;color:#475569">閉じる</button>’+
-‘<button class="btn-sm" id="editSave" style="background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff">保存</button></div></div></div>’;
+  var em=state.editModal; var bk=em.bk;
+  return '<div class="overlay" id="editOverlay"><div class="modal" id="editModal">'+
+    '<h2>✏️ 予約を編集</h2><p>'+em.date+'　'+em.time+'〜</p>'+
+    '<div class="fg"><label class="fl">申し込み種別</label><select class="fi" id="emType"><option '+(bk.type==="閉栓"?"selected":"")+'>閉栓</option><option '+(bk.type==="開栓"?"selected":"")+'>開栓</option></select></div>'+
+    '<div class="fg"><label class="fl">お名前</label><input class="fi" id="emName" value="'+esc(bk.name)+'"></div>'+
+    '<div class="fg"><label class="fl">電話番号</label><input class="fi" id="emPhone" type="tel" value="'+esc(bk.phone)+'"></div>'+
+    '<div class="fg"><label class="fl">住所</label><input class="fi" id="emAddress" value="'+esc(bk.address)+'"></div>'+
+    '<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="emBuilding" value="'+esc(bk.building||'')+'"></div>'+
+    '<div class="fg"><label class="fl">住居種別</label><select class="fi" id="emOwnership"><option '+(bk.ownership==="持家"?"selected":"")+'>持家</option><option '+(bk.ownership==="賃貸"?"selected":"")+'>賃貸</option></select></div>'+
+    '<div class="fg"><label class="fl">お支払い方法</label><select class="fi" id="emPayment"><option value="">なし</option>'+
+    PAYMENT_OPTIONS.map(function(o){return'<option '+(bk.payment===o?"selected":"")+'>'+o+'</option>';}).join("")+'</select></div>'+
+    '<div class="fg"><label class="fl">備考</label><textarea class="ft" id="emNotes">'+esc(bk.notes||'')+'</textarea></div>'+
+    '<div class="modal-btns"><button class="btn-sm" id="editCancel" style="background:#f1f5f9;color:#475569">閉じる</button>'+
+    '<button class="btn-sm" id="editSave" style="background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff">保存</button></div></div></div>';
 }
 
 function buildConfirmModal(){
-var cc=state.confirmCancel;
-var bk=state.bookings[cc.date]&&state.bookings[cc.date][cc.time];
-var name=bk?esc(bk.name):””;
-return ‘<div class="overlay" id="confirmOverlay"><div class="confirm-modal">’+
-‘<h3>🗑️ 予約をキャンセル</h3>’+
-‘<p>’+cc.date+’　‘+cc.time+’〜<br>’+name+’ 様の予約をキャンセルしますか？<br>この操作は取り消せません。</p>’+
-‘<div class="modal-btns"><button class="btn-sm" id="confirmNo" style="background:#f1f5f9;color:#475569">戻る</button>’+
-‘<button class="btn-sm" id="confirmYes" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff">キャンセルする</button></div></div></div>’;
+  var cc=state.confirmCancel;
+  var bk=state.bookings[cc.date]&&state.bookings[cc.date][cc.time];
+  var name=bk?esc(bk.name):"";
+  return '<div class="overlay" id="confirmOverlay"><div class="confirm-modal">'+
+    '<h3>🗑️ 予約をキャンセル</h3>'+
+    '<p>'+cc.date+'　'+cc.time+'〜<br>'+name+' 様の予約をキャンセルしますか？<br>この操作は取り消せません。</p>'+
+    '<div class="modal-btns"><button class="btn-sm" id="confirmNo" style="background:#f1f5f9;color:#475569">戻る</button>'+
+    '<button class="btn-sm" id="confirmYes" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff">キャンセルする</button></div></div></div>';
 }
 
 function buildAddModal(){
-var ds=state.adminDate?fmt(state.adminDate):””;
-var booked=state.bookings[ds]||{};
-var freeSlots=SLOTS.filter(function(t){return !booked[t]&&!isAutoBlocked(ds,t);});
-return ‘<div class="overlay" id="addOverlay"><div class="modal" id="addModal">’+
-‘<h2>➕ 予約を追加</h2><p>’+ds+’</p>’+
-‘<div class="fg"><label class="fl">時間帯 <span>*</span></label><select class="fi" id="amTime">’+
-‘<option value="">選択してください</option>’+
-freeSlots.map(function(t){return’<option value="'+t+'">’+t+’〜</option>’;}).join(””)+
-‘</select></div>’+
-‘<div class="fg"><label class="fl">申し込み種別</label><select class="fi" id="amType"><option>閉栓</option><option>開栓</option></select></div>’+
-’<div class="fg"><label class="fl">お名前 <span>*</span></label><input class="fi" id="amName" placeholder="山田 太郎"></div>’+
-‘<div class="fg"><label class="fl">電話番号 <span>*</span></label><input class="fi" id="amPhone" type="tel" placeholder="090-0000-0000"></div>’+
-’<div class="fg"><label class="fl">住所 <span>*</span></label><input class="fi" id="amAddress" placeholder="北九州市○○区○○町1-2-3"></div>’+
-‘<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="amBuilding" placeholder="○○マンション 101号室"></div>’+
-‘<div class="fg"><label class="fl">住居種別</label><select class="fi" id="amOwnership"><option>持家</option><option>賃貸</option></select></div>’+
-‘<div class="fg"><label class="fl">お支払い方法</label><select class="fi" id="amPayment"><option value="">なし</option>’+
-PAYMENT_OPTIONS.map(function(o){return’<option>’+o+’</option>’;}).join(””)+’</select></div>’+
-‘<div class="fg"><label class="fl">備考</label><textarea class="ft" id="amNotes" placeholder="ご要望など"></textarea></div>’+
-‘<div class="modal-btns"><button class="btn-sm" id="addCancel" style="background:#f1f5f9;color:#475569">キャンセル</button>’+
-‘<button class="btn-sm" id="addSave" style="background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff">追加する</button></div></div></div>’;
+  var ds=state.adminDate?fmt(state.adminDate):"";
+  var booked=state.bookings[ds]||{};
+  var freeSlots=SLOTS.filter(function(t){return !booked[t]&&!isAutoBlocked(ds,t);});
+  return '<div class="overlay" id="addOverlay"><div class="modal" id="addModal">'+
+    '<h2>➕ 予約を追加</h2><p>'+ds+'</p>'+
+    '<div class="fg"><label class="fl">時間帯 <span>*</span></label><select class="fi" id="amTime">'+
+    '<option value="">選択してください</option>'+
+    freeSlots.map(function(t){return'<option value="'+t+'">'+t+'〜</option>';}).join("")+
+    '</select></div>'+
+    '<div class="fg"><label class="fl">申し込み種別</label><select class="fi" id="amType"><option>閉栓</option><option>開栓</option></select></div>'+
+    '<div class="fg"><label class="fl">お名前 <span>*</span></label><input class="fi" id="amName" placeholder="山田 太郎"></div>'+
+    '<div class="fg"><label class="fl">電話番号 <span>*</span></label><input class="fi" id="amPhone" type="tel" placeholder="090-0000-0000"></div>'+
+    '<div class="fg"><label class="fl">住所 <span>*</span></label><input class="fi" id="amAddress" placeholder="北九州市○○区○○町1-2-3"></div>'+
+    '<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="amBuilding" placeholder="○○マンション 101号室"></div>'+
+    '<div class="fg"><label class="fl">住居種別</label><select class="fi" id="amOwnership"><option>持家</option><option>賃貸</option></select></div>'+
+    '<div class="fg"><label class="fl">お支払い方法</label><select class="fi" id="amPayment"><option value="">なし</option>'+
+    PAYMENT_OPTIONS.map(function(o){return'<option>'+o+'</option>';}).join("")+'</select></div>'+
+    '<div class="fg"><label class="fl">備考</label><textarea class="ft" id="amNotes" placeholder="ご要望など"></textarea></div>'+
+    '<div class="modal-btns"><button class="btn-sm" id="addCancel" style="background:#f1f5f9;color:#475569">キャンセル</button>'+
+    '<button class="btn-sm" id="addSave" style="background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff">追加する</button></div></div></div>';
 }
 
 function buildPinModal(){
-return ‘<div class="overlay" id="pinOverlay"><div class="modal" id="pinModal">’+
-‘<h2>🔒 管理者ログイン</h2><p>PINコードを入力してください</p>’+
-‘<input class="pin-in" type="password" maxlength="4" placeholder="••••" id="pinIn" autocomplete="off">’+
-‘<div class="pin-err" id="pinErr"></div>’+
-‘<div class="modal-btns"><button class="btn-sm" id="pinCancel" style="background:#f1f5f9;color:#475569">キャンセル</button>’+
-‘<button class="btn-sm" id="pinOk" style="background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff">ログイン</button></div></div></div>’;
+  return '<div class="overlay" id="pinOverlay"><div class="modal" id="pinModal">'+
+    '<h2>🔒 管理者ログイン</h2><p>PINコードを入力してください</p>'+
+    '<input class="pin-in" type="password" maxlength="4" placeholder="••••" id="pinIn" autocomplete="off">'+
+    '<div class="pin-err" id="pinErr"></div>'+
+    '<div class="modal-btns"><button class="btn-sm" id="pinCancel" style="background:#f1f5f9;color:#475569">キャンセル</button>'+
+    '<button class="btn-sm" id="pinOk" style="background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff">ログイン</button></div></div></div>';
 }
 
 function bindEvents(){
-q(“adminBtn”)&&q(“adminBtn”).addEventListener(“click”,function(){
-if(state.isAdmin){state.isAdmin=false;state.tab=“customer”;render();}
-else{state.showPin=true;render();}
-});
-qa(”[data-tab]”).forEach(function(el){el.addEventListener(“click”,function(){state.tab=el.dataset.tab;render();});});
-qa(”[data-cal]”).forEach(function(el){el.addEventListener(“click”,function(){
-if(el.dataset.dis===“1”) return;
-var d=new Date(el.dataset.date+“T00:00:00”);
-if(el.dataset.cal===“cust”){state.selDate=d;state.selTime=null;state.step=2;render();}
-else{state.adminDate=d;render();}
-});});
-q(“custPrevM”)&&q(“custPrevM”).addEventListener(“click”,function(){state.custMonth=addMonth(state.custMonth,-1);render();});
-q(“custNextM”)&&q(“custNextM”).addEventListener(“click”,function(){state.custMonth=addMonth(state.custMonth,1);render();});
-q(“adminPrevM”)&&q(“adminPrevM”).addEventListener(“click”,function(){state.adminMonth=addMonth(state.adminMonth,-1);render();});
-q(“adminNextM”)&&q(“adminNextM”).addEventListener(“click”,function(){state.adminMonth=addMonth(state.adminMonth,1);render();});
-qa(”[data-slot]”).forEach(function(el){el.addEventListener(“click”,function(){
-if(el.classList.contains(“blk”)||el.classList.contains(“bkd”)||el.classList.contains(“auto-blk”)) return;
-state.selTime=el.dataset.slot;state.step=3;render();
-});});
-q(“fType”)&&q(“fType”).addEventListener(“change”,function(e){state.form.type=e.target.value;render();});
-q(“fName”)&&q(“fName”).addEventListener(“input”,function(e){state.form.name=e.target.value;syncSubmit();});
-q(“fPhone”)&&q(“fPhone”).addEventListener(“input”,function(e){state.form.phone=e.target.value;syncSubmit();});
-q(“fAddress”)&&q(“fAddress”).addEventListener(“input”,function(e){state.form.address=e.target.value;syncSubmit();});
-q(“fBuilding”)&&q(“fBuilding”).addEventListener(“input”,function(e){state.form.building=e.target.value;});
-q(“fNotes”)&&q(“fNotes”).addEventListener(“input”,function(e){state.form.notes=e.target.value;});
-q(“fPayment”)&&q(“fPayment”).addEventListener(“change”,function(e){state.form.payment=e.target.value;syncSubmit();});
-q(“fDeposit”)&&q(“fDeposit”).addEventListener(“change”,function(e){state.form.depositAgreed=e.target.checked;syncSubmit();render();});
-qa(“input[name=‘ownership’]”).forEach(function(el){el.addEventListener(“change”,function(){state.form.ownership=el.value;state.form.depositAgreed=false;syncSubmit();render();});});
-q(“submitBtn”)&&q(“submitBtn”).addEventListener(“click”,submitBooking);
-q(“resetBtn”)&&q(“resetBtn”).addEventListener(“click”,function(){
-state.step=1;state.selDate=null;state.selTime=null;state.doneId=null;
-state.form={name:””,phone:””,type:“閉栓”,address:””,building:””,ownership:””,depositAgreed:false,payment:””,notes:””};render();
-});
-qa(”[data-admin-slot]”).forEach(function(el){el.addEventListener(“click”,function(){
-var t=el.dataset.adminSlot;
-var isBkd=el.dataset.isBkd===“1”;
-var isAuto=el.dataset.isAuto===“1”;
-if(isAuto) return;// 自動ブロックは変更不可
-var ds=fmt(state.adminDate);
-if(isBkd){
-var bk=state.bookings[ds]&&state.bookings[ds][t];
-if(bk){state.editModal={date:ds,time:t,bk:Object.assign({},bk)};render();}
-} else {
-var cur=state.blocked[ds]||[];
-if(cur.indexOf(t)>=0){state.blocked[ds]=cur.filter(function(x){return x!==t;});}
-else{state.blocked[ds]=cur.concat([t]);}
-saveLS(SK_BLK,state.blocked);
-state.savingMsg=true;render();
-setTimeout(function(){state.savingMsg=false;render();},1200);
-}
-});});
-q(“addBkBtn”)&&q(“addBkBtn”).addEventListener(“click”,function(){state.addModal=true;render();});
-q(“addOverlay”)&&q(“addOverlay”).addEventListener(“click”,function(){state.addModal=false;render();});
-q(“addModal”)&&q(“addModal”).addEventListener(“click”,function(e){e.stopPropagation();});
-q(“addCancel”)&&q(“addCancel”).addEventListener(“click”,function(){state.addModal=false;render();});
-q(“addSave”)&&q(“addSave”).addEventListener(“click”,function(){
-var t=q(“amTime”)&&q(“amTime”).value;
-var name=q(“amName”)&&q(“amName”).value;
-var phone=q(“amPhone”)&&q(“amPhone”).value;
-var address=q(“amAddress”)&&q(“amAddress”).value;
-if(!t||!name||!phone||!address){alert(“時間帯・お名前・電話番号・住所は必須です”);return;}
-var ds=fmt(state.adminDate);
-if(!state.bookings[ds]) state.bookings[ds]={};
-var id=“BK”+Date.now();
-state.bookings[ds][t]={
-id:id,type:q(“amType”).value,name:name,phone:phone,
-address:address,building:q(“amBuilding”).value||””,
-ownership:q(“amOwnership”).value,payment:q(“amPayment”).value||””,
-notes:q(“amNotes”).value||””,createdAt:new Date().toISOString()
-};
-saveLS(SK_BK,state.bookings);
-state.addModal=false;state.savingMsg=true;render();
-setTimeout(function(){state.savingMsg=false;render();},1200);
-});
-qa(”[data-edit-date]”).forEach(function(el){el.addEventListener(“click”,function(){
-var ds=el.dataset.editDate,t=el.dataset.editTime;
-var bk=state.bookings[ds]&&state.bookings[ds][t];
-if(bk){state.editModal={date:ds,time:t,bk:Object.assign({},bk)};render();}
-});});
-qa(”[data-cancel-date]”).forEach(function(el){el.addEventListener(“click”,function(){
-state.confirmCancel={date:el.dataset.cancelDate,time:el.dataset.cancelTime};render();
-});});
-q(“editOverlay”)&&q(“editOverlay”).addEventListener(“click”,function(){state.editModal=null;render();});
-q(“editModal”)&&q(“editModal”).addEventListener(“click”,function(e){e.stopPropagation();});
-q(“editCancel”)&&q(“editCancel”).addEventListener(“click”,function(){state.editModal=null;render();});
-q(“editSave”)&&q(“editSave”).addEventListener(“click”,function(){
-var em=state.editModal;
-if(!state.bookings[em.date]) return;
-state.bookings[em.date][em.time].type=q(“emType”).value;
-state.bookings[em.date][em.time].name=q(“emName”).value;
-state.bookings[em.date][em.time].phone=q(“emPhone”).value;
-state.bookings[em.date][em.time].address=q(“emAddress”).value;
-state.bookings[em.date][em.time].building=q(“emBuilding”).value;
-state.bookings[em.date][em.time].ownership=q(“emOwnership”).value;
-state.bookings[em.date][em.time].payment=q(“emPayment”).value;
-state.bookings[em.date][em.time].notes=q(“emNotes”).value;
-saveLS(SK_BK,state.bookings);
-state.editModal=null;state.savingMsg=true;render();
-setTimeout(function(){state.savingMsg=false;render();},1200);
-});
-q(“confirmOverlay”)&&q(“confirmOverlay”).addEventListener(“click”,function(){state.confirmCancel=null;render();});
-q(“confirmNo”)&&q(“confirmNo”).addEventListener(“click”,function(){state.confirmCancel=null;render();});
-q(“confirmYes”)&&q(“confirmYes”).addEventListener(“click”,function(){
-var cc=state.confirmCancel;
-if(state.bookings[cc.date]){
-delete state.bookings[cc.date][cc.time];
-if(Object.keys(state.bookings[cc.date]).length===0) delete state.bookings[cc.date];
-}
-saveLS(SK_BK,state.bookings);
-state.confirmCancel=null;state.savingMsg=true;render();
-setTimeout(function(){state.savingMsg=false;render();},1200);
-});
-q(“pinOverlay”)&&q(“pinOverlay”).addEventListener(“click”,function(){state.showPin=false;render();});
-q(“pinModal”)&&q(“pinModal”).addEventListener(“click”,function(e){e.stopPropagation();});
-q(“pinCancel”)&&q(“pinCancel”).addEventListener(“click”,function(){state.showPin=false;render();});
-q(“pinOk”)&&q(“pinOk”).addEventListener(“click”,checkPin);
-q(“pinIn”)&&q(“pinIn”).addEventListener(“keydown”,function(e){if(e.key===“Enter”)checkPin();});
-setTimeout(function(){q(“pinIn”)&&q(“pinIn”).focus();},50);
+  q("adminBtn")&&q("adminBtn").addEventListener("click",function(){
+    if(state.isAdmin){state.isAdmin=false;state.tab="customer";render();}
+    else{state.showPin=true;render();}
+  });
+  qa("[data-tab]").forEach(function(el){el.addEventListener("click",function(){state.tab=el.dataset.tab;render();});});
+  qa("[data-cal]").forEach(function(el){el.addEventListener("click",function(){
+    if(el.dataset.dis==="1") return;
+    var d=new Date(el.dataset.date+"T00:00:00");
+    if(el.dataset.cal==="cust"){state.selDate=d;state.selTime=null;state.step=2;render();}
+    else{state.adminDate=d;render();}
+  });});
+  q("custPrevM")&&q("custPrevM").addEventListener("click",function(){state.custMonth=addMonth(state.custMonth,-1);render();});
+  q("custNextM")&&q("custNextM").addEventListener("click",function(){state.custMonth=addMonth(state.custMonth,1);render();});
+  q("adminPrevM")&&q("adminPrevM").addEventListener("click",function(){state.adminMonth=addMonth(state.adminMonth,-1);render();});
+  q("adminNextM")&&q("adminNextM").addEventListener("click",function(){state.adminMonth=addMonth(state.adminMonth,1);render();});
+  qa("[data-slot]").forEach(function(el){el.addEventListener("click",function(){
+    if(el.classList.contains("blk")||el.classList.contains("bkd")||el.classList.contains("auto-blk")) return;
+    state.selTime=el.dataset.slot;state.step=3;render();
+  });});
+  q("fType")&&q("fType").addEventListener("change",function(e){state.form.type=e.target.value;render();});
+  q("fName")&&q("fName").addEventListener("input",function(e){state.form.name=e.target.value;syncSubmit();});
+  q("fPhone")&&q("fPhone").addEventListener("input",function(e){state.form.phone=e.target.value;syncSubmit();});
+  q("fAddress")&&q("fAddress").addEventListener("input",function(e){state.form.address=e.target.value;syncSubmit();});
+  q("fBuilding")&&q("fBuilding").addEventListener("input",function(e){state.form.building=e.target.value;});
+  q("fNotes")&&q("fNotes").addEventListener("input",function(e){state.form.notes=e.target.value;});
+  q("fPayment")&&q("fPayment").addEventListener("change",function(e){state.form.payment=e.target.value;syncSubmit();});
+  q("fDeposit")&&q("fDeposit").addEventListener("change",function(e){state.form.depositAgreed=e.target.checked;syncSubmit();render();});
+  qa("input[name='ownership']").forEach(function(el){el.addEventListener("change",function(){state.form.ownership=el.value;state.form.depositAgreed=false;syncSubmit();render();});});
+  q("submitBtn")&&q("submitBtn").addEventListener("click",submitBooking);
+  q("resetBtn")&&q("resetBtn").addEventListener("click",function(){
+    state.step=1;state.selDate=null;state.selTime=null;state.doneId=null;
+    state.form={name:"",phone:"",type:"閉栓",address:"",building:"",ownership:"",depositAgreed:false,payment:"",notes:""};render();
+  });
+  qa("[data-admin-slot]").forEach(function(el){el.addEventListener("click",function(){
+    var t=el.dataset.adminSlot;
+    var isBkd=el.dataset.isBkd==="1";
+    var isAuto=el.dataset.isAuto==="1";
+    if(isAuto) return;// 自動ブロックは変更不可
+    var ds=fmt(state.adminDate);
+    if(isBkd){
+      var bk=state.bookings[ds]&&state.bookings[ds][t];
+      if(bk){state.editModal={date:ds,time:t,bk:Object.assign({},bk)};render();}
+    } else {
+      var cur=state.blocked[ds]||[];
+      if(cur.indexOf(t)>=0){state.blocked[ds]=cur.filter(function(x){return x!==t;});}
+      else{state.blocked[ds]=cur.concat([t]);}
+      saveLS(SK_BLK,state.blocked);
+      state.savingMsg=true;render();
+      setTimeout(function(){state.savingMsg=false;render();},1200);
+    }
+  });});
+  q("addBkBtn")&&q("addBkBtn").addEventListener("click",function(){state.addModal=true;render();});
+  q("addOverlay")&&q("addOverlay").addEventListener("click",function(){state.addModal=false;render();});
+  q("addModal")&&q("addModal").addEventListener("click",function(e){e.stopPropagation();});
+  q("addCancel")&&q("addCancel").addEventListener("click",function(){state.addModal=false;render();});
+  q("addSave")&&q("addSave").addEventListener("click",function(){
+    var t=q("amTime")&&q("amTime").value;
+    var name=q("amName")&&q("amName").value;
+    var phone=q("amPhone")&&q("amPhone").value;
+    var address=q("amAddress")&&q("amAddress").value;
+    if(!t||!name||!phone||!address){alert("時間帯・お名前・電話番号・住所は必須です");return;}
+    var ds=fmt(state.adminDate);
+    if(!state.bookings[ds]) state.bookings[ds]={};
+    var id="BK"+Date.now();
+    state.bookings[ds][t]={
+      id:id,type:q("amType").value,name:name,phone:phone,
+      address:address,building:q("amBuilding").value||"",
+      ownership:q("amOwnership").value,payment:q("amPayment").value||"",
+      notes:q("amNotes").value||"",createdAt:new Date().toISOString()
+    };
+    saveLS(SK_BK,state.bookings);
+    state.addModal=false;state.savingMsg=true;render();
+    setTimeout(function(){state.savingMsg=false;render();},1200);
+  });
+  qa("[data-edit-date]").forEach(function(el){el.addEventListener("click",function(){
+    var ds=el.dataset.editDate,t=el.dataset.editTime;
+    var bk=state.bookings[ds]&&state.bookings[ds][t];
+    if(bk){state.editModal={date:ds,time:t,bk:Object.assign({},bk)};render();}
+  });});
+  qa("[data-cancel-date]").forEach(function(el){el.addEventListener("click",function(){
+    state.confirmCancel={date:el.dataset.cancelDate,time:el.dataset.cancelTime};render();
+  });});
+  q("editOverlay")&&q("editOverlay").addEventListener("click",function(){state.editModal=null;render();});
+  q("editModal")&&q("editModal").addEventListener("click",function(e){e.stopPropagation();});
+  q("editCancel")&&q("editCancel").addEventListener("click",function(){state.editModal=null;render();});
+  q("editSave")&&q("editSave").addEventListener("click",function(){
+    var em=state.editModal;
+    if(!state.bookings[em.date]) return;
+    state.bookings[em.date][em.time].type=q("emType").value;
+    state.bookings[em.date][em.time].name=q("emName").value;
+    state.bookings[em.date][em.time].phone=q("emPhone").value;
+    state.bookings[em.date][em.time].address=q("emAddress").value;
+    state.bookings[em.date][em.time].building=q("emBuilding").value;
+    state.bookings[em.date][em.time].ownership=q("emOwnership").value;
+    state.bookings[em.date][em.time].payment=q("emPayment").value;
+    state.bookings[em.date][em.time].notes=q("emNotes").value;
+    saveLS(SK_BK,state.bookings);
+    state.editModal=null;state.savingMsg=true;render();
+    setTimeout(function(){state.savingMsg=false;render();},1200);
+  });
+  q("confirmOverlay")&&q("confirmOverlay").addEventListener("click",function(){state.confirmCancel=null;render();});
+  q("confirmNo")&&q("confirmNo").addEventListener("click",function(){state.confirmCancel=null;render();});
+  q("confirmYes")&&q("confirmYes").addEventListener("click",function(){
+    var cc=state.confirmCancel;
+    if(state.bookings[cc.date]){
+      delete state.bookings[cc.date][cc.time];
+      if(Object.keys(state.bookings[cc.date]).length===0) delete state.bookings[cc.date];
+    }
+    saveLS(SK_BK,state.bookings);
+    state.confirmCancel=null;state.savingMsg=true;render();
+    setTimeout(function(){state.savingMsg=false;render();},1200);
+  });
+  q("pinOverlay")&&q("pinOverlay").addEventListener("click",function(){state.showPin=false;render();});
+  q("pinModal")&&q("pinModal").addEventListener("click",function(e){e.stopPropagation();});
+  q("pinCancel")&&q("pinCancel").addEventListener("click",function(){state.showPin=false;render();});
+  q("pinOk")&&q("pinOk").addEventListener("click",checkPin);
+  q("pinIn")&&q("pinIn").addEventListener("keydown",function(e){if(e.key==="Enter")checkPin();});
+  setTimeout(function(){q("pinIn")&&q("pinIn").focus();},50);
 }
 
 function syncSubmit(){
-var btn=q(“submitBtn”);
-if(btn) btn.disabled=!isFormValid()||state.submitting;
+  var btn=q("submitBtn");
+  if(btn) btn.disabled=!isFormValid()||state.submitting;
 }
 function checkPin(){
-var v=q(“pinIn”)?q(“pinIn”).value:””;
-if(v===ADMIN_PIN){state.showPin=false;state.isAdmin=true;state.tab=“admin”;render();}
-else{var err=q(“pinErr”);if(err)err.textContent=“PINが正しくありません”;var inp=q(“pinIn”);if(inp){inp.value=””;inp.focus();}}
+  var v=q("pinIn")?q("pinIn").value:"";
+  if(v===ADMIN_PIN){state.showPin=false;state.isAdmin=true;state.tab="admin";render();}
+  else{var err=q("pinErr");if(err)err.textContent="PINが正しくありません";var inp=q("pinIn");if(inp){inp.value="";inp.focus();}}
 }
-var GAS_URL=“https://script.google.com/macros/s/AKfycbxDKAQG1y1tlYUmV2YchsK-qxLE7z8bBR5Mv5Gf3AVvEM1RnVBsaR9sNwl146r_2uL6xw/exec”;
+var GAS_URL="https://script.google.com/macros/s/AKfycbxDKAQG1y1tlYUmV2YchsK-qxLE7z8bBR5Mv5Gf3AVvEM1RnVBsaR9sNwl146r_2uL6xw/exec";
 
 function submitBooking(){
-if(!isFormValid()) return;
-state.submitting=true;render();
-var id=“BK”+Date.now();
-var ds=fmt(state.selDate); var f=state.form;
-var payload={
-id:id,
-date:ds,
-time:state.selTime,
-name:f.name,
-phone:f.phone,
-type:f.type,
-address:f.address,
-building:f.building||””,
-ownership:f.ownership,
-payment:f.payment||””,
-notes:f.notes||””,
-createdAt:new Date().toISOString()
-};
-// Googleスプレッドシート＆LINE通知へ送信
-fetch(GAS_URL,{
-method:“POST”,
-mode:“no-cors”,
-headers:{“Content-Type”:“application/json”},
-body:JSON.stringify(payload)
-}).catch(function(e){console.log(“送信エラー”,e);});
+  if(!isFormValid()) return;
+  state.submitting=true;render();
+  var id="BK"+Date.now();
+  var ds=fmt(state.selDate); var f=state.form;
+  var payload={
+    id:id,
+    date:ds,
+    time:state.selTime,
+    name:f.name,
+    phone:f.phone,
+    type:f.type,
+    address:f.address,
+    building:f.building||"",
+    ownership:f.ownership,
+    payment:f.payment||"",
+    notes:f.notes||"",
+    createdAt:new Date().toISOString()
+  };
+  // Googleスプレッドシート＆LINE通知へ送信
+  fetch(GAS_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  }).catch(function(e){console.log("送信エラー",e);});
 
-// ローカルにも保存
-if(!state.bookings[ds]) state.bookings[ds]={};
-state.bookings[ds][state.selTime]={id:id,name:f.name,phone:f.phone,type:f.type,address:f.address,building:f.building,ownership:f.ownership,depositAgreed:f.depositAgreed,payment:f.payment,notes:f.notes,createdAt:new Date().toISOString()};
-saveLS(SK_BK,state.bookings);
-state.doneId=id;state.submitting=false;render();
+  // ローカルにも保存
+  if(!state.bookings[ds]) state.bookings[ds]={};
+  state.bookings[ds][state.selTime]={id:id,name:f.name,phone:f.phone,type:f.type,address:f.address,building:f.building,ownership:f.ownership,depositAgreed:f.depositAgreed,payment:f.payment,notes:f.notes,createdAt:new Date().toISOString()};
+  saveLS(SK_BK,state.bookings);
+  state.doneId=id;state.submitting=false;render();
 }
 
 state.blocked=loadLS(SK_BLK);
 state.bookings=loadLS(SK_BK);
 render();
 </script>
-
 </body>
 </html>
