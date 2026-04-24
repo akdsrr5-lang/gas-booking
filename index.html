@@ -632,12 +632,14 @@ function fetchBookedFromGAS(){
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.status==="ok"&&d.booked){
-        // スプレッドシートの予約をマージ（ローカルより優先）
+        // スプレッドシートの予約詳細をマージ
         Object.keys(d.booked).forEach(function(date){
           if(!state.bookings[date]) state.bookings[date]={};
           d.booked[date].forEach(function(time){
-            if(!state.bookings[date][time]){
-              // スプレッドシートにあるがローカルにない予約を「取得済み」として登録
+            // スプレッドシートの詳細があれば上書き
+            if(d.details&&d.details[date]&&d.details[date][time]){
+              state.bookings[date][time]=d.details[date][time];
+            } else if(!state.bookings[date][time]){
               state.bookings[date][time]={id:"GS",name:"(予約済)",phone:"",type:"",address:"",building:"",ownership:"",payment:"",notes:"",createdAt:""};
             }
           });
