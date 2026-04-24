@@ -625,6 +625,31 @@ function submitBooking(){
 
 state.blocked=loadLS(SK_BLK);
 state.bookings=loadLS(SK_BK);
+
+// Googleスプレッドシートから最新の予約済み枠を取得
+function fetchBookedFromGAS(){
+  fetch(GAS_URL+"?t="+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.status==="ok"&&d.booked){
+        // スプレッドシートの予約をマージ（ローカルより優先）
+        Object.keys(d.booked).forEach(function(date){
+          if(!state.bookings[date]) state.bookings[date]={};
+          d.booked[date].forEach(function(time){
+            if(!state.bookings[date][time]){
+              // スプレッドシートにあるがローカルにない予約を「取得済み」として登録
+              state.bookings[date][time]={id:"GS",name:"(予約済)",phone:"",type:"",address:"",building:"",ownership:"",payment:"",notes:"",createdAt:""};
+            }
+          });
+        });
+        saveLS(SK_BK,state.bookings);
+        render();
+      }
+    })
+    .catch(function(e){console.log("GAS取得エラー",e);});
+}
+
+fetchBookedFromGAS();
 render();
 </script>
 </body>
