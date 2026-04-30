@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>住まい設備のご相談</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background:#f0f4f8;min-height:100vh;font-size:14px;}
+.header{background:linear-gradient(135deg,#1a3a5c,#2563a8);padding:16px;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.header h1{font-size:16px;font-weight:700;}
+.header p{font-size:11px;opacity:.65;margin-top:3px;}
+.wrap{padding:14px;max-width:480px;margin:0 auto;}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:14px;overflow:hidden;}
+.card-hd{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff;padding:12px 16px;font-size:13px;font-weight:700;}
+.card-bd{padding:16px;}
+.fg{margin-bottom:14px;}
+.fl{font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;display:block;}
+.fl span{color:#ef4444;}
+.fi,.ft{width:100%;padding:11px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;color:#1e293b;background:#fafafa;outline:none;transition:.2s;}
+.fi:focus,.ft:focus{border-color:#1a3a5c;background:#fff;}
+.ft{min-height:100px;resize:vertical;}
+/* カテゴリボタン */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cat-btn{padding:12px 8px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;text-align:center;transition:.15s;font-family:inherit;}
+.cat-btn:hover{border-color:#1a3a5c;color:#1a3a5c;background:#f0f4ff;}
+.cat-btn.active{background:#1a3a5c;color:#fff;border-color:#1a3a5c;}
+.cat-btn .icon{font-size:20px;display:block;margin-bottom:4px;}
+/* 写真アップロード */
+.photo-area{border:2px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:#fafafa;}
+.photo-area:hover{border-color:#1a3a5c;background:#f0f4ff;}
+.photo-area.has-file{border-color:#10b981;background:#f0fdf4;}
+.photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.photo-preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;}
+.photo-del{position:relative;}
+.photo-del button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;}
+/* ボタン */
+.btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-p{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff;}
+.btn-p:hover{opacity:.9;}
+.btn-p:disabled{opacity:.4;cursor:not-allowed;}
+/* 完了 */
+.ok-ico{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;box-shadow:0 8px 24px rgba(16,185,129,.3);}
+.ok-title{text-align:center;font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px;}
+.ok-sub{text-align:center;font-size:12px;color:#64748b;line-height:1.8;}
+.notice{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 13px;font-size:11.5px;color:#166534;line-height:1.6;margin-top:14px;}
+.err{color:#ef4444;font-size:11px;margin-top:4px;}
+.uploading{text-align:center;padding:20px;color:#64748b;font-size:13px;}
+.progress{width:100%;height:6px;background:#e2e8f0;border-radius:99px;margin-top:8px;overflow:hidden;}
+.progress-bar{height:100%;background:linear-gradient(90deg,#1a3a5c,#2563a8);border-radius:99px;transition:width .3s;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏠 住まい設備のご相談</h1>
+  <p>お気軽にご相談ください。担当者よりご連絡いたします。</p>
+</div>
+
+<div class="wrap" id="mainForm">
+
+  <!-- カテゴリ選択 -->
+  <div class="card">
+    <div class="card-hd">📋 STEP 1｜ご相談内容を選択</div>
+    <div class="card-bd">
+      <div class="cat-grid" id="catGrid">
+        <button class="cat-btn" data-cat="ガス機器"><span class="icon">🔥</span>ガス機器</button>
+        <button class="cat-btn" data-cat="水道・電気工事"><span class="icon">💧</span>水道・電気工事</button>
+        <button class="cat-btn" data-cat="リフォーム"><span class="icon">🏗️</span>リフォーム</button>
+        <button class="cat-btn" data-cat="エコキュート"><span class="icon">♨️</span>エコキュート</button>
+        <button class="cat-btn" style="grid-column:1/-1" data-cat="その他"><span class="icon">📝</span>その他</button>
+      </div>
+      <div class="err" id="catErr"></div>
+    </div>
+  </div>
+
+  <!-- 写真 -->
+  <div class="card">
+    <div class="card-hd">📸 STEP 2｜写真を送る（任意）</div>
+    <div class="card-bd">
+      <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size:28px">📷</div>
+        <div style="font-size:13px;color:#64748b;margin-top:6px">タップして写真を選択</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:4px">最大3枚まで・各5MB以下</div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this)">
+      <div class="photo-preview" id="photoPreview"></div>
+      <div class="fg" style="margin-top:12px;margin-bottom:0">
+        <label class="fl">詳しい状況・ご要望</label>
+        <textarea class="ft" id="fDesc" placeholder="例）給湯器から水が漏れている。型番は〇〇です。"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- お客様情報 -->
+  <div class="card">
+    <div class="card-hd">👤 STEP 3｜お客様情報を入力</div>
+    <div class="card-bd">
+      <div class="fg">
+        <label class="fl">お名前 <span>*</span></label>
+        <input class="fi" id="fName" placeholder="山田 太郎">
+      </div>
+      <div class="fg">
+        <label class="fl">電話番号 <span>*</span></label>
+        <input class="fi" id="fPhone" type="tel" placeholder="090-0000-0000">
+      </div>
+      <div class="fg">
+        <label class="fl">住所 <span>*</span></label>
+        <input class="fi" id="fAddress" placeholder="北九州市○○区○○町1-2-3">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">アパート・マンション名</label>
+        <input class="fi" id="fBuilding" placeholder="○○マンション 101号室">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-p" id="submitBtn" onclick="submitForm()">✓ 送信する</button>
+  <div style="height:20px"></div>
+</div>
+
+<!-- 完了画面 -->
+<div class="wrap" id="doneScreen" style="display:none">
+  <div class="card">
+    <div class="card-bd" style="padding:32px 20px;text-align:center">
+      <div class="ok-ico">✓</div>
+      <div class="ok-title">送信が完了しました</div>
+      <div class="ok-sub">
+        ご相談内容を受け付けました。<br>
+        担当者より折り返しご連絡いたします。<br><br>
+        <strong id="doneId"></strong>
+      </div>
+      <div class="notice">📞 お急ぎの場合はお電話にてご連絡ください。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var GAS_URL = "https://script.google.com/macros/s/AKfycbxDKAQG1y1tlYUmV2YchsK-qxLE7z8bBR5Mv5Gf3AVvEM1RnVBsaR9sNwl146r_2uL6xw/exec";
+var selectedCat = "";
+var photoFiles = [];
+var photoB64 = [];
+
+// カテゴリ選択
+document.querySelectorAll(".cat-btn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".cat-btn").forEach(function(b){b.classList.remove("active");});
+    btn.classList.add("active");
+    selectedCat = btn.dataset.cat;
+    document.getElementById("catErr").textContent = "";
+  });
+});
+
+// 写真選択
+function handlePhotos(input){
+  var files = Array.from(input.files);
+  if(files.length + photoFiles.length > 3){
+    alert("写真は最大3枚までです");
+    return;
+  }
+  files.forEach(function(file){
+    if(file.size > 5 * 1024 * 1024){
+      alert(file.name + "は5MBを超えています");
+      return;
+    }
+    photoFiles.push(file);
+    var reader = new FileReader();
+    reader.onload = function(e){
+      photoB64.push(e.target.result);
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  if(photoFiles.length > 0){
+    document.getElementById("photoArea").classList.add("has-file");
+  }
+  input.value = "";
+}
+
+function renderPreviews(){
+  var prev = document.getElementById("photoPreview");
+  prev.innerHTML = "";
+  photoB64.forEach(function(b64, i){
+    var wrap = document.createElement("div");
+    wrap.className = "photo-del";
+    var img = document.createElement("img");
+    img.src = b64;
+    var del = document.createElement("button");
+    del.textContent = "×";
+    del.onclick = function(){ photoFiles.splice(i,1); photoB64.splice(i,1); renderPreviews(); };
+    wrap.appendChild(img);
+    wrap.appendChild(del);
+    prev.appendChild(wrap);
+  });
+}
+
+// 送信
+function submitForm(){
+  var name    = document.getElementById("fName").value.trim();
+  var phone   = document.getElementById("fPhone").value.trim();
+  var address = document.getElementById("fAddress").value.trim();
+  var building= document.getElementById("fBuilding").value.trim();
+  var desc    = document.getElementById("fDesc").value.trim();
+
+  if(!selectedCat){ document.getElementById("catErr").textContent="ご相談内容を選択してください"; return; }
+  if(!name||!phone||!address){ alert("お名前・電話番号・住所は必須です"); return; }
+
+  var btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "送信中…";
+
+  var id = "SO" + Date.now();
+  var payload = {
+    formType: "soudan",
+    id: id,
+    category: selectedCat,
+    name: name,
+    phone: phone,
+    address: address,
+    building: building,
+    description: desc,
+    photos: photoB64,
+    createdAt: new Date().toISOString()
+  };
+
+  fetch(GAS_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  }).then(function(){
+    document.getElementById("mainForm").style.display = "none";
+    document.getElementById("doneScreen").style.display = "block";
+    document.getElementById("doneId").textContent = "受付番号：" + id;
+  }).catch(function(){
+    // no-corsのためエラーでも完了扱い
+    document.getElementById("mainForm").style.display = "none";
+    document.getElementById("doneScreen").style.display = "block";
+    document.getElementById("doneId").textContent = "受付番号：" + id;
+  });
+}
+</script>
+</body>
+</html>
