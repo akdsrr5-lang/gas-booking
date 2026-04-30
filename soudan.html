@@ -20,34 +20,28 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
 .fi,.ft{width:100%;padding:11px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;color:#1e293b;background:#fafafa;outline:none;transition:.2s;}
 .fi:focus,.ft:focus{border-color:#1a3a5c;background:#fff;}
 .ft{min-height:100px;resize:vertical;}
-/* カテゴリボタン */
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .cat-btn{padding:12px 8px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;text-align:center;transition:.15s;font-family:inherit;}
 .cat-btn:hover{border-color:#1a3a5c;color:#1a3a5c;background:#f0f4ff;}
 .cat-btn.active{background:#1a3a5c;color:#fff;border-color:#1a3a5c;}
 .cat-btn .icon{font-size:20px;display:block;margin-bottom:4px;}
-/* 写真アップロード */
 .photo-area{border:2px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:#fafafa;}
 .photo-area:hover{border-color:#1a3a5c;background:#f0f4ff;}
 .photo-area.has-file{border-color:#10b981;background:#f0fdf4;}
 .photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.photo-preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;}
 .photo-del{position:relative;}
-.photo-del button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;}
-/* ボタン */
+.photo-del img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;}
+.photo-del button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:12px;line-height:20px;text-align:center;}
 .btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
 .btn-p{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff;}
 .btn-p:hover{opacity:.9;}
 .btn-p:disabled{opacity:.4;cursor:not-allowed;}
-/* 完了 */
 .ok-ico{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;box-shadow:0 8px 24px rgba(16,185,129,.3);}
 .ok-title{text-align:center;font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px;}
 .ok-sub{text-align:center;font-size:12px;color:#64748b;line-height:1.8;}
 .notice{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 13px;font-size:11.5px;color:#166534;line-height:1.6;margin-top:14px;}
 .err{color:#ef4444;font-size:11px;margin-top:4px;}
-.uploading{text-align:center;padding:20px;color:#64748b;font-size:13px;}
-.progress{width:100%;height:6px;background:#e2e8f0;border-radius:99px;margin-top:8px;overflow:hidden;}
-.progress-bar{height:100%;background:linear-gradient(90deg,#1a3a5c,#2563a8);border-radius:99px;transition:width .3s;}
+.compress-msg{font-size:11px;color:#64748b;margin-top:6px;text-align:center;}
 </style>
 </head>
 <body>
@@ -58,8 +52,6 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
 </div>
 
 <div class="wrap" id="mainForm">
-
-  <!-- カテゴリ選択 -->
   <div class="card">
     <div class="card-hd">📋 STEP 1｜ご相談内容を選択</div>
     <div class="card-bd">
@@ -74,16 +66,16 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
     </div>
   </div>
 
-  <!-- 写真 -->
   <div class="card">
     <div class="card-hd">📸 STEP 2｜写真を送る（任意）</div>
     <div class="card-bd">
       <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
         <div style="font-size:28px">📷</div>
         <div style="font-size:13px;color:#64748b;margin-top:6px">タップして写真を選択</div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:4px">最大3枚まで・各5MB以下</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:4px">最大3枚まで</div>
       </div>
-      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this)">
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
+      <div class="compress-msg" id="compressMsg"></div>
       <div class="photo-preview" id="photoPreview"></div>
       <div class="fg" style="margin-top:12px;margin-bottom:0">
         <label class="fl">詳しい状況・ご要望</label>
@@ -92,7 +84,6 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
     </div>
   </div>
 
-  <!-- お客様情報 -->
   <div class="card">
     <div class="card-hd">👤 STEP 3｜お客様情報を入力</div>
     <div class="card-bd">
@@ -115,11 +106,10 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
     </div>
   </div>
 
-  <button class="btn btn-p" id="submitBtn" onclick="submitForm()">✓ 送信する</button>
+  <button class="btn btn-p" id="submitBtn">✓ 送信する</button>
   <div style="height:20px"></div>
 </div>
 
-<!-- 完了画面 -->
 <div class="wrap" id="doneScreen" style="display:none">
   <div class="card">
     <div class="card-bd" style="padding:32px 20px;text-align:center">
@@ -138,8 +128,8 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
 <script>
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxDKAQG1y1tlYUmV2YchsK-qxLE7z8bBR5Mv5Gf3AVvEM1RnVBsaR9sNwl146r_2uL6xw/exec";
 var selectedCat = "";
-var photoFiles = [];
 var photoB64 = [];
+var compressing = 0;
 
 // カテゴリ選択
 document.querySelectorAll(".cat-btn").forEach(function(btn){
@@ -152,42 +142,45 @@ document.querySelectorAll(".cat-btn").forEach(function(btn){
 });
 
 // 写真選択
-function handlePhotos(input){
-  var files = Array.from(input.files);
-  if(files.length + photoFiles.length > 3){
+document.getElementById("photoInput").addEventListener("change", function(){
+  var files = Array.from(this.files);
+  if(files.length + photoB64.length > 3){
     alert("写真は最大3枚までです");
+    this.value = "";
     return;
   }
   files.forEach(function(file){
-    photoFiles.push(file);
+    compressing++;
+    document.getElementById("compressMsg").textContent = "写真を処理中…";
     compressImage(file, function(b64){
       photoB64.push(b64);
+      compressing--;
+      if(compressing === 0) document.getElementById("compressMsg").textContent = "写真の準備完了 ✓";
       renderPreviews();
     });
   });
-  if(photoFiles.length > 0){
+  if(photoB64.length > 0 || files.length > 0){
     document.getElementById("photoArea").classList.add("has-file");
   }
-  input.value = "";
-}
+  this.value = "";
+});
 
-// 画像を圧縮（最大800px・品質0.6）
+// 画像を圧縮
 function compressImage(file, callback){
   var reader = new FileReader();
   reader.onload = function(e){
     var img = new Image();
     img.onload = function(){
       var canvas = document.createElement("canvas");
-      var maxSize = 800;
+      var maxSize = 1000;
       var w = img.width, h = img.height;
       if(w > maxSize || h > maxSize){
         if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
         else { w = Math.round(w * maxSize / h); h = maxSize; }
       }
       canvas.width = w; canvas.height = h;
-      var ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL("image/jpeg", 0.6));
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL("image/jpeg", 0.7));
     };
     img.src = e.target.result;
   };
@@ -204,7 +197,12 @@ function renderPreviews(){
     img.src = b64;
     var del = document.createElement("button");
     del.textContent = "×";
-    del.onclick = function(){ photoFiles.splice(i,1); photoB64.splice(i,1); renderPreviews(); };
+    del.onclick = function(e){
+      e.stopPropagation();
+      photoB64.splice(i,1);
+      renderPreviews();
+      if(photoB64.length === 0) document.getElementById("photoArea").classList.remove("has-file");
+    };
     wrap.appendChild(img);
     wrap.appendChild(del);
     prev.appendChild(wrap);
@@ -212,7 +210,11 @@ function renderPreviews(){
 }
 
 // 送信
-function submitForm(){
+document.getElementById("submitBtn").addEventListener("click", function(){
+  if(compressing > 0){
+    alert("写真の処理中です。少しお待ちください。");
+    return;
+  }
   var name    = document.getElementById("fName").value.trim();
   var phone   = document.getElementById("fPhone").value.trim();
   var address = document.getElementById("fAddress").value.trim();
@@ -244,14 +246,21 @@ function submitForm(){
     method: "POST",
     mode: "no-cors",
     body: JSON.stringify(payload)
-  }).catch(function(e){ console.log(e); });
+  }).then(function(){
+    showDone(id);
+  }).catch(function(err){
+    console.log("fetch error:", err);
+    showDone(id);
+  });
 
-  // 3秒後に完了画面を表示
-  setTimeout(function(){
-    document.getElementById("mainForm").style.display = "none";
-    document.getElementById("doneScreen").style.display = "block";
-    document.getElementById("doneId").textContent = "受付番号：" + id;
-  }, 3000);
+  // 10秒後に強制完了（no-corsは応答が取れないため）
+  setTimeout(function(){ showDone(id); }, 10000);
+});
+
+function showDone(id){
+  document.getElementById("mainForm").style.display = "none";
+  document.getElementById("doneScreen").style.display = "block";
+  document.getElementById("doneId").textContent = "受付番号：" + id;
 }
 </script>
 </body>
