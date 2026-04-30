@@ -632,18 +632,19 @@ function fetchBookedFromGAS(){
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.status==="ok"&&d.booked){
-        // スプレッドシートの予約詳細をマージ
+        // GASのデータで完全に上書き（古いキャッシュを削除）
+        var newBookings={};
         Object.keys(d.booked).forEach(function(date){
-          if(!state.bookings[date]) state.bookings[date]={};
+          newBookings[date]={};
           d.booked[date].forEach(function(time){
-            // スプレッドシートの詳細があれば上書き
             if(d.details&&d.details[date]&&d.details[date][time]){
-              state.bookings[date][time]=d.details[date][time];
-            } else if(!state.bookings[date][time]){
-              state.bookings[date][time]={id:"GS",name:"(予約済)",phone:"",type:"",address:"",building:"",ownership:"",payment:"",notes:"",createdAt:""};
+              newBookings[date][time]=d.details[date][time];
+            } else {
+              newBookings[date][time]={id:"GS",name:"(予約済)",phone:"",type:"",address:"",building:"",ownership:"",payment:"",notes:"",createdAt:""};
             }
           });
         });
+        state.bookings=newBookings;
         saveLS(SK_BK,state.bookings);
         render();
       }
