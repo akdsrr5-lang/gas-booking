@@ -159,22 +159,39 @@ function handlePhotos(input){
     return;
   }
   files.forEach(function(file){
-    if(file.size > 5 * 1024 * 1024){
-      alert(file.name + "は5MBを超えています");
-      return;
-    }
     photoFiles.push(file);
-    var reader = new FileReader();
-    reader.onload = function(e){
-      photoB64.push(e.target.result);
+    compressImage(file, function(b64){
+      photoB64.push(b64);
       renderPreviews();
-    };
-    reader.readAsDataURL(file);
+    });
   });
   if(photoFiles.length > 0){
     document.getElementById("photoArea").classList.add("has-file");
   }
   input.value = "";
+}
+
+// 画像を圧縮（最大800px・品質0.6）
+function compressImage(file, callback){
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement("canvas");
+      var maxSize = 800;
+      var w = img.width, h = img.height;
+      if(w > maxSize || h > maxSize){
+        if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL("image/jpeg", 0.6));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function renderPreviews(){
