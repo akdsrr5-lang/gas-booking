@@ -298,7 +298,7 @@ function buildAdmin(){
   var blocked=ds?(state.blocked[ds]||[]):[];
   var booked=ds?(state.bookings[ds]||{}):{};
   var html='<div class="card"><div class="card-hd">📅 日程を選択</div><div class="card-bd">'+
-    buildCalendar("admin",state.adminMonth,state.adminDate)+
+    buildCalendar("admin",state.adminMonth,state.adminDate,true)+
     '<div style="height:10px"></div>'+
     '<div class="legend">'+
     '<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>'+
@@ -337,20 +337,22 @@ function buildAdmin(){
   return html;
 }
 
-function buildCalendar(ns,viewDate,selDate){
+function buildCalendar(ns,viewDate,selDate,allowPast){
   var yr=viewDate.getFullYear(),mo=viewDate.getMonth();
   var firstDay=new Date(yr,mo,1).getDay();
   var dim=new Date(yr,mo+1,0).getDate();
   var now=new Date();now.setHours(0,0,0,0);
-  var canPrev=new Date(yr,mo,1)>new Date(now.getFullYear(),now.getMonth(),1);
+  var canPrev=allowPast?true:new Date(yr,mo,1)>new
+  Date(now.getFullYear(),now.getMonth(),1);
   var cells="";
   for(var i=0;i<firstDay;i++) cells+='<div class="cal-day emp"></div>';
   for(var d=1;d<=dim;d++){
     var date=new Date(yr,mo,d);
     var ds=fmt(date);
     var isSun=date.getDay()===0;
-    var isHol=isHoliday(ds);
-    var dis=isPast(date)||isToday(date);
+    var hasBk=Object.keys(state.bookings[ds]||{}).length>0;
+    var dis=allowPast?((isPast(date)||isToday(date))&&!hasBk):
+    (isPast(date)||isToday(date))
     var isSel=selDate&&fmt(selDate)===ds;
     var isTod=isToday(date);
     var hasBlk=(state.blocked[ds]||[]).length>0||Object.keys(state.bookings[ds]||{}).length>0;
