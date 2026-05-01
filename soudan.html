@@ -42,6 +42,10 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
 .notice{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:11px 13px;font-size:11.5px;color:#166534;line-height:1.6;margin-top:14px;}
 .err{color:#ef4444;font-size:11px;margin-top:4px;}
 .compress-msg{font-size:11px;color:#64748b;margin-top:6px;text-align:center;}
+.progress-wrap{background:#f1f5f9;border-radius:10px;padding:16px;margin-bottom:14px;text-align:center;}
+.progress-label{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;}
+.progress-bar-outer{width:100%;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,#1a3a5c,#2563a8);border-radius:99px;transition:width .4s;}
 </style>
 </head>
 <body>
@@ -55,7 +59,7 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
   <div class="card">
     <div class="card-hd">📋 STEP 1｜ご相談内容を選択</div>
     <div class="card-bd">
-      <div class="cat-grid" id="catGrid">
+      <div class="cat-grid">
         <button class="cat-btn" data-cat="ガス機器"><span class="icon">🔥</span>ガス機器</button>
         <button class="cat-btn" data-cat="水道・電気工事"><span class="icon">💧</span>水道・電気工事</button>
         <button class="cat-btn" data-cat="リフォーム"><span class="icon">🏗️</span>リフォーム</button>
@@ -103,6 +107,14 @@ body{font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background
         <label class="fl">アパート・マンション名</label>
         <input class="fi" id="fBuilding" placeholder="○○マンション 101号室">
       </div>
+    </div>
+  </div>
+
+  <!-- 送信中プログレス -->
+  <div class="progress-wrap" id="progressWrap" style="display:none">
+    <div class="progress-label" id="progressLabel">送信中…</div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progressBar" style="width:0%"></div>
     </div>
   </div>
 
@@ -157,15 +169,12 @@ document.getElementById("photoInput").addEventListener("change", function(){
       compressing--;
       if(compressing === 0) document.getElementById("compressMsg").textContent = "写真の準備完了 ✓";
       renderPreviews();
+      if(photoB64.length > 0) document.getElementById("photoArea").classList.add("has-file");
     });
   });
-  if(photoB64.length > 0 || files.length > 0){
-    document.getElementById("photoArea").classList.add("has-file");
-  }
   this.value = "";
 });
 
-// 画像を圧縮
 function compressImage(file, callback){
   var reader = new FileReader();
   reader.onload = function(e){
@@ -209,59 +218,89 @@ function renderPreviews(){
   });
 }
 
-// 送信
+// 1件送信（Promiseで順番に処理）
+function sendOne(payload){
+  return new Promise(function(resolve){
+    fetch(GAS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(payload)
+    }).then(function(){ resolve(); }).catch(function(){ resolve(); });
+  });
+}
+
+// 送信ボタン
 document.getElementById("submitBtn").addEventListener("click", function(){
-  if(compressing > 0){
-    alert("写真の処理中です。少しお待ちください。");
-    return;
-  }
+  if(compressing > 0){ alert("写真の処理中です。少しお待ちください。"); return; }
   var name    = document.getElementById("fName").value.trim();
   var phone   = document.getElementById("fPhone").value.trim();
   var address = document.getElementById("fAddress").value.trim();
   var building= document.getElementById("fBuilding").value.trim();
   var desc    = document.getElementById("fDesc").value.trim();
-
   if(!selectedCat){ document.getElementById("catErr").textContent="ご相談内容を選択してください"; return; }
   if(!name||!phone||!address){ alert("お名前・電話番号・住所は必須です"); return; }
 
   var btn = document.getElementById("submitBtn");
   btn.disabled = true;
-  btn.textContent = "送信中…";
+  document.getElementById("progressWrap").style.display = "block";
 
   var id = "SO" + Date.now();
-  var payload = {
+  var total = 1 + photoB64.length; // テキスト1件 + 写真N件
+  var done = 0;
+
+  function updateProgress(label){
+    done++;
+    document.getElementById("progressLabel").textContent = label;
+    document.getElementById("progressBar").style.width = Math.round(done/total*100) + "%";
+  }
+
+  // ① テキストデータを送信
+  var textPayload = {
     formType: "soudan",
     id: id,
     category: selectedCat,
-    name: name,
-    phone: phone,
-    address: address,
-    building: building,
+    name: name, phone: phone,
+    address: address, building: building,
     description: desc,
-    photos: photoB64,
+    photos: [], // 写真なし
+    photoTotal: photoB64.length,
     createdAt: new Date().toISOString()
   };
 
-  fetch(GAS_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: JSON.stringify(payload)
+  sendOne(textPayload).then(function(){
+    updateProgress("テキスト情報を送信しました (" + done + "/" + total + ")");
+
+    // ② 写真を1枚ずつ順番に送信
+    var chain = Promise.resolve();
+    photoB64.forEach(function(b64, i){
+      chain = chain.then(function(){
+        var photoPayload = {
+          formType: "soudanPhoto",
+          id: id,
+          photoIndex: i + 1,
+          photoTotal: photoB64.length,
+          photo: b64
+        };
+        return sendOne(photoPayload).then(function(){
+          updateProgress("写真 " + (i+1) + "/" + photoB64.length + " を送信しました (" + (done+1) + "/" + total + ")");
+          done++; // updateProgressは内部でインクリメントするので別途
+          document.getElementById("progressBar").style.width = Math.round(done/total*100) + "%";
+        });
+      });
+    });
+
+    return chain;
   }).then(function(){
-    showDone(id);
-  }).catch(function(err){
-    console.log("fetch error:", err);
-    showDone(id);
+    // 完了
+    document.getElementById("progressBar").style.width = "100%";
+    document.getElementById("progressLabel").textContent = "送信完了！";
+    setTimeout(function(){
+      document.getElementById("mainForm").style.display = "none";
+      document.getElementById("doneScreen").style.display = "block";
+      document.getElementById("doneId").textContent = "受付番号：" + id;
+    }, 800);
   });
-
-  // 10秒後に強制完了（no-corsは応答が取れないため）
-  setTimeout(function(){ showDone(id); }, 10000);
 });
-
-function showDone(id){
-  document.getElementById("mainForm").style.display = "none";
-  document.getElementById("doneScreen").style.display = "block";
-  document.getElementById("doneId").textContent = "受付番号：" + id;
-}
 </script>
 </body>
 </html>
