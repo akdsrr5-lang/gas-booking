@@ -132,7 +132,6 @@ var DAYS=["日","月","火","水","木","金","土"];
 var PAYMENT_OPTIONS=["ゆうちょ銀行","福岡銀行","福岡ひびき信用金庫","西日本シティ銀行","北九州農協","郵便払込用紙(毎月検針票と一緒)"];
 var AUTO_BLOCK_TIMES=["09:00","10:00","11:00"];
 
-// ── 祝日リスト（2025〜2026年） ────────────────────────────────
 var HOLIDAYS={
   "2025-01-01":1,"2025-01-13":1,"2025-02-11":1,"2025-02-23":1,"2025-02-24":1,
   "2025-03-20":1,"2025-04-29":1,"2025-05-03":1,"2025-05-04":1,"2025-05-05":1,
@@ -148,21 +147,18 @@ var HOLIDAYS={
 
 function isHoliday(dateStr){return !!HOLIDAYS[dateStr];}
 
-// ── 月曜AM自動ブロック判定 ───────────────────────────────────
-// 月曜が祝日→翌火曜の9〜11時を自動ブロック
-// 通常月曜→月曜の9〜11時を自動ブロック
 function isAutoBlocked(dateStr,time){
   if(AUTO_BLOCK_TIMES.indexOf(time)<0) return false;
   var d=new Date(dateStr+"T00:00:00");
   var day=d.getDay();
-  if(day===1){// 月曜
-    if(isHoliday(dateStr)) return false;// 月曜祝日→月曜はブロックしない
+  if(day===1){
+    if(isHoliday(dateStr)) return false;
     return true;
   }
-  if(day===2){// 火曜
+  if(day===2){
     var prev=new Date(d); prev.setDate(d.getDate()-1);
     var prevStr=fmt(prev);
-    if(isHoliday(prevStr)) return true;// 前日月曜が祝日→火曜ブロック
+    if(isHoliday(prevStr)) return true;
   }
   return false;
 }
@@ -223,7 +219,7 @@ function buildCustomer(){
     '<div class="step '+(s>2?"done":s===2?"act":"")+'"></div>'+
     '<div class="step '+(s>2?"done":s===3?"act":"")+'"></div></div>';
   html+='<div class="card"><div class="card-hd">📅 STEP 1｜日程を選択</div><div class="card-bd">'+
-    buildCalendar("cust",state.custMonth,state.selDate)+
+    buildCalendar("cust",state.custMonth,state.selDate,false)+
     '<div style="height:10px"></div>'+
     '<div class="legend">'+
     '<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>日曜・祝日</div>'+
@@ -342,24 +338,23 @@ function buildCalendar(ns,viewDate,selDate,allowPast){
   var firstDay=new Date(yr,mo,1).getDay();
   var dim=new Date(yr,mo+1,0).getDate();
   var now=new Date();now.setHours(0,0,0,0);
-  var canPrev=allowPast?true:new Date(yr,mo,1)>new
-  Date(now.getFullYear(),now.getMonth(),1);
+  var canPrev=allowPast?true:new Date(yr,mo,1)>new Date(now.getFullYear(),now.getMonth(),1);
   var cells="";
   for(var i=0;i<firstDay;i++) cells+='<div class="cal-day emp"></div>';
   for(var d=1;d<=dim;d++){
     var date=new Date(yr,mo,d);
     var ds=fmt(date);
     var isSun=date.getDay()===0;
+    var isHol=isHoliday(ds);
     var hasBk=Object.keys(state.bookings[ds]||{}).length>0;
-    var dis=allowPast?((isPast(date)||isToday(date))&&!hasBk):
-    (isPast(date)||isToday(date))
+    var dis=allowPast?((isPast(date)||isToday(date))&&!hasBk):(isPast(date)||isToday(date));
     var isSel=selDate&&fmt(selDate)===ds;
     var isTod=isToday(date);
     var hasBlk=(state.blocked[ds]||[]).length>0||Object.keys(state.bookings[ds]||{}).length>0;
     var cls="cal-day";
     if(isTod) cls+=" tod";
     if(dis) cls+=" dis";
-    if(isSun||isHol) cls+=" holiday";// 日曜・祝日のみ赤く
+    if(isSun||isHol) cls+=" holiday";
     if(isSel) cls+=" sel";
     if(hasBlk&&!dis) cls+=" dot";
     cells+='<div class="'+cls+'" data-cal="'+ns+'" data-date="'+ds+'" data-dis="'+(dis?1:0)+'">'+d+'</div>';
@@ -497,7 +492,7 @@ function bindEvents(){
     var t=el.dataset.adminSlot;
     var isBkd=el.dataset.isBkd==="1";
     var isAuto=el.dataset.isAuto==="1";
-    if(isAuto) return;// 自動ブロックは変更不可
+    if(isAuto) return;
     var ds=fmt(state.adminDate);
     if(isBkd){
       var bk=state.bookings[ds]&&state.bookings[ds][t];
@@ -597,28 +592,15 @@ function submitBooking(){
   var id="BK"+Date.now();
   var ds=fmt(state.selDate); var f=state.form;
   var payload={
-    id:id,
-    date:ds,
-    time:state.selTime,
-    name:f.name,
-    phone:f.phone,
-    type:f.type,
-    address:f.address,
-    building:f.building||"",
-    ownership:f.ownership,
-    payment:f.payment||"",
-    notes:f.notes||"",
-    createdAt:new Date().toISOString()
+    id:id,date:ds,time:state.selTime,name:f.name,phone:f.phone,type:f.type,
+    address:f.address,building:f.building||"",ownership:f.ownership,
+    payment:f.payment||"",notes:f.notes||"",createdAt:new Date().toISOString()
   };
-  // Googleスプレッドシート＆LINE通知へ送信
   fetch(GAS_URL,{
-    method:"POST",
-    mode:"no-cors",
+    method:"POST",mode:"no-cors",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify(payload)
   }).catch(function(e){console.log("送信エラー",e);});
-
-  // ローカルにも保存
   if(!state.bookings[ds]) state.bookings[ds]={};
   state.bookings[ds][state.selTime]={id:id,name:f.name,phone:f.phone,type:f.type,address:f.address,building:f.building,ownership:f.ownership,depositAgreed:f.depositAgreed,payment:f.payment,notes:f.notes,createdAt:new Date().toISOString()};
   saveLS(SK_BK,state.bookings);
@@ -628,13 +610,11 @@ function submitBooking(){
 state.blocked=loadLS(SK_BLK);
 state.bookings=loadLS(SK_BK);
 
-// Googleスプレッドシートから最新の予約済み枠を取得
 function fetchBookedFromGAS(){
   fetch(GAS_URL+"?t="+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.status==="ok"&&d.booked){
-        // GASのデータで完全に上書き（古いキャッシュを削除）
         var newBookings={};
         Object.keys(d.booked).forEach(function(date){
           newBookings[date]={};
