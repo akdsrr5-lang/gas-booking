@@ -188,7 +188,9 @@ function render(){document.getElementById("app").innerHTML=buildApp();bindEvents
 
 function isFormValid(){
   var f=state.form;
-  if(!f.name||!f.phone||!f.address||!f.ownership) return false;
+  if(!f.name||!f.phone||!f.address) return false;
+  if(f.type==="閉栓") return true;
+  if(!f.ownership) return false;
   if(f.ownership==="賃貸"&&!f.depositAgreed) return false;
   if(f.type==="開栓"&&!f.payment) return false;
   return true;
@@ -243,17 +245,19 @@ function buildCustomer(){
     html+='<div class="fg"><label class="fl">電話番号 <span>*</span></label><input class="fi" id="fPhone" type="tel" placeholder="090-0000-0000" value="'+esc(f.phone)+'"></div>';
     html+='<div class="fg"><label class="fl">住所 <span>*</span></label><input class="fi" id="fAddress" placeholder="北九州市○○区○○町1-2-3" value="'+esc(f.address)+'"></div>';
     html+='<div class="fg"><label class="fl">アパート・マンション名</label><input class="fi" id="fBuilding" placeholder="○○マンション 101号室" value="'+esc(f.building)+'"></div>';
-    html+='<div class="fg"><label class="fl">住居の種別 <span>*</span></label>'+
-      '<div class="radio-group">'+
-      '<label class="radio-label '+(f.ownership==="持家"?"selected":"")+'"><input type="radio" name="ownership" value="持家">🏠 持家</label>'+
-      '<label class="radio-label '+(f.ownership==="賃貸"?"selected":"")+'"><input type="radio" name="ownership" value="賃貸">🏢 賃貸</label>'+
-      '</div></div>';
-    if(f.ownership==="賃貸"){
-      html+='<div class="fg"><label class="fl">保証金について <span>*</span></label>'+
-        '<div class="deposit-box"><p class="deposit-text">ガスの契約時に<strong>1万円の保証金</strong>をお預かりさせていただいております。これは使用料金を滞納されたときや停止手続きを行わずに転居された場合の預り金となります。<br><br>退去・解約時にご返金いたします。</p></div>'+
-        '<label class="check-label '+(f.depositAgreed?"checked":"")+'"><input type="checkbox" id="fDeposit" '+(f.depositAgreed?"checked":"")+'>'+
-        '<div class="check-box">'+(f.depositAgreed?"✓":"")+'</div>'+
-        '<span class="check-text">同意しました</span></label></div>';
+    if(f.type!=="閉栓"){
+      html+='<div class="fg"><label class="fl">住居の種別 <span>*</span></label>'+
+        '<div class="radio-group">'+
+        '<label class="radio-label '+(f.ownership==="持家"?"selected":"")+'"><input type="radio" name="ownership" value="持家">🏠 持家</label>'+
+        '<label class="radio-label '+(f.ownership==="賃貸"?"selected":"")+'"><input type="radio" name="ownership" value="賃貸">🏢 賃貸</label>'+
+        '</div></div>';
+      if(f.ownership==="賃貸"){
+        html+='<div class="fg"><label class="fl">保証金について <span>*</span></label>'+
+          '<div class="deposit-box"><p class="deposit-text">ガスの契約時に<strong>1万円の保証金</strong>をお預かりさせていただいております。これは使用料金を滞納されたときや停止手続きを行わずに転居された場合の預り金となります。<br><br>退去・解約時にご返金いたします。</p></div>'+
+          '<label class="check-label '+(f.depositAgreed?"checked":"")+'"><input type="checkbox" id="fDeposit" '+(f.depositAgreed?"checked":"")+'>'+
+          '<div class="check-box">'+(f.depositAgreed?"✓":"")+'</div>'+
+          '<span class="check-text">同意しました</span></label></div>';
+      }
     }
     if(f.type==="開栓"){
       html+='<div class="fg"><label class="fl">お支払い方法 <span>*</span></label>'+
@@ -281,10 +285,11 @@ function buildSuccess(){
     '<div class="sum-row"><span class="sum-l">お名前</span><span class="sum-v">'+esc(f.name)+'</span></div>'+
     '<div class="sum-row"><span class="sum-l">電話番号</span><span class="sum-v">'+esc(f.phone)+'</span></div>'+
     '<div class="sum-row"><span class="sum-l">住所</span><span class="sum-v">'+esc(f.address)+(f.building?" "+esc(f.building):"")+'</span></div>'+
-    '<div class="sum-row"><span class="sum-l">住居種別</span><span class="sum-v">'+esc(f.ownership)+'</span></div>'+
+    (f.type!=="閉栓"?'<div class="sum-row"><span class="sum-l">住居種別</span><span class="sum-v">'+esc(f.ownership)+'</span></div>':'')+
     (f.type==="開栓"?'<div class="sum-row"><span class="sum-l">お支払い</span><span class="sum-v">'+esc(f.payment)+'</span></div>':'')+
     (f.notes?'<div class="sum-row"><span class="sum-l">備考</span><span class="sum-v">'+esc(f.notes)+'</span></div>':'')+
     '</div>'+
+    (f.type==="閉栓"?'<div class="notice" style="background:#fff7e6;border-left:4px solid #f59e0b;color:#92400e;margin-top:12px;">⚠️ ガスの閉栓時に、お客様のお立合いが不要な場合がございます。<br>その場合は、当社よりご連絡いたします。</div>':'')+
     '<div class="notice grn">📞 変更・キャンセルはお電話にてご連絡ください。</div>'+
     '<div style="height:14px"></div><button class="btn btn-o" id="resetBtn">最初に戻る</button></div></div>';
 }
